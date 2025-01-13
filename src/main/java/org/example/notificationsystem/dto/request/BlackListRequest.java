@@ -5,8 +5,18 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 @Data
 @Builder
 public class BlackListRequest {
+    @NotNull
     private List<String> phoneNumbers;
+
+    public BlackListRequest(List<String> numbers) {
+        this.phoneNumbers = numbers;
+    }
+    public BlackListRequest() {}
 }

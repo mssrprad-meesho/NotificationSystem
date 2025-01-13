@@ -1,12 +1,12 @@
 package org.example.notificationsystem.services;
 
 import org.example.notificationsystem.constants.StatusConstants;
+//import org.example.notificationsystem.kafka.Producer;
 import org.example.notificationsystem.models.PhoneNumber;
 import org.example.notificationsystem.models.SmsRequest;
 import org.example.notificationsystem.repositories.PhoneNumberRepository;
 import org.example.notificationsystem.repositories.SmsRequestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -19,8 +19,12 @@ public class SmsService {
 
     @Autowired
     private SmsRequestRepository smsRequestRepository;
+
     @Autowired
     private PhoneNumberRepository phoneNumberRepository;
+
+//    @Autowired
+//    private Producer producer;
 
     @Transactional
     public SmsRequest createSmsRequest(String number, String message) {
@@ -44,6 +48,9 @@ public class SmsService {
         smsRequest.setUpdatedAt(LocalDateTime.now());
 
         smsRequestRepository.saveAndFlush(smsRequest);
+
+        // Producer Sends MsgReqId to Kafka Message Queue here
+//        this.producer.sendMessage(smsRequest.getId().toString());
         return smsRequest;
     }
 
@@ -53,7 +60,22 @@ public class SmsService {
     }
 
     @Transactional
-    public SmsRequest getSmsRequest(Long Id) {
-        return smsRequestRepository.findById(Id).orElse(null);
+    public Optional<SmsRequest> getSmsRequest(Long Id) {
+        return smsRequestRepository.findById(Id);
+    }
+
+    @Transactional
+    public List<SmsRequest> getFinishedSmsRequests() {
+        return this.smsRequestRepository.findByStatus(StatusConstants.FINISHED.ordinal());
+    }
+
+    @Transactional
+    public List<SmsRequest> getInProgressSmsRequests() {
+        return this.smsRequestRepository.findByStatus(StatusConstants.IN_PROGRESS.ordinal());
+    }
+
+    @Transactional
+    public List<SmsRequest> getFailedSmsRequests() {
+        return this.smsRequestRepository.findByStatus(StatusConstants.FAILED.ordinal());
     }
 }

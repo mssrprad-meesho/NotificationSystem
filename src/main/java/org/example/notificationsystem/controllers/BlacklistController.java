@@ -1,28 +1,51 @@
 package org.example.notificationsystem.controllers;
 
-import org.example.notificationsystem.constants.StatusConstants;
-import org.example.notificationsystem.models.SmsRequest;
-import org.example.notificationsystem.repositories.SmsRequestRepository;
+import org.example.notificationsystem.dto.request.BlackListRequest;
+import org.example.notificationsystem.dto.response.BlackListNumbersResponse;
+import org.example.notificationsystem.dto.response.GetAllBlacklistedNumbersResponse;
+import org.example.notificationsystem.services.BlacklistService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import javax.validation.Valid;
+
 
 @RestController
 public class BlacklistController {
-    private SmsRequestRepository smsRequestRepository;
 
-    @GetMapping("/v1/sms/finished")
-    public List<SmsRequest> getFinishedSmsRequests() {
-        return this.smsRequestRepository.findByStatus(StatusConstants.FINISHED.ordinal());
+    @Autowired
+    private BlacklistService blacklistService;
+
+    @GetMapping("/v1/blacklist")
+    public ResponseEntity<?> getBlacklistedPhoneNumbers() {
+        return ResponseEntity.ok(
+                GetAllBlacklistedNumbersResponse
+                        .builder()
+                        .data(this.blacklistService.getAllBlacklistedNumbers())
+                        .build()
+        );
     }
 
-    @GetMapping("/v1/sms/in_progress")
-    public List<SmsRequest> getInProgressSmsRequests() {
-        return this.smsRequestRepository.findByStatus(StatusConstants.IN_PROGRESS.ordinal());
+    @PostMapping("/v1/blacklist")
+    public ResponseEntity<?> addNumbersToBlacklist(@Valid @RequestBody BlackListRequest blackListRequest) {
+        this.blacklistService.addNumbersToBlacklist(blackListRequest.getPhoneNumbers());
+        return ResponseEntity.ok(
+                BlackListNumbersResponse
+                        .builder()
+                        .data("Successfully Blacklisted")
+                        .build()
+                );
     }
 
-    @GetMapping("/v1/sms/failed")
-    public List<SmsRequest> getFailedSmsRequests() {
-        return this.smsRequestRepository.findByStatus(StatusConstants.FAILED.ordinal());
+    @DeleteMapping("/v1/blacklist")
+    public ResponseEntity<?> removeNumbersFromBlacklist(@Valid @RequestBody BlackListRequest blackListRequest) {
+        this.blacklistService.removeNumbersFromBlacklist(blackListRequest.getPhoneNumbers());
+        return ResponseEntity.ok(
+                BlackListNumbersResponse
+                        .builder()
+                        .data("Successfully whitelisted")
+                        .build()
+        );
     }
 }
