@@ -22,7 +22,6 @@ public class BlacklistService {
 
     @Transactional
     public Boolean isNumberBlacklisted(String number) {
-
         // Get from Redis first
         Boolean blacklisted = this.template.opsForValue().get(number);
 

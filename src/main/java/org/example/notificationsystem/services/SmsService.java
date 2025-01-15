@@ -1,6 +1,7 @@
 package org.example.notificationsystem.services;
 
 import org.example.notificationsystem.constants.StatusConstants;
+import org.example.notificationsystem.kafka.Producer;
 import org.example.notificationsystem.models.PhoneNumber;
 import org.example.notificationsystem.models.SmsRequest;
 import org.example.notificationsystem.repositories.PhoneNumberRepository;
@@ -21,6 +22,9 @@ public class SmsService {
 
     @Autowired
     private PhoneNumberRepository phoneNumberRepository;
+
+    @Autowired
+    private Producer producer;
 
     @Transactional
     public SmsRequest createSmsRequest(String number, String message) {
@@ -44,6 +48,8 @@ public class SmsService {
         smsRequest.setUpdatedAt(LocalDateTime.now());
 
         smsRequestRepository.saveAndFlush(smsRequest);
+
+        producer.sendMessage(smsRequest.getId().toString());
         return smsRequest;
     }
 
@@ -70,5 +76,24 @@ public class SmsService {
     @Transactional
     public List<SmsRequest> getFailedSmsRequests() {
         return this.smsRequestRepository.findByStatus(StatusConstants.FAILED.ordinal());
+    }
+
+    @Transactional
+    public Optional<String> getPhoneNumber(Long smsRequestId) {
+        Optional<SmsRequest> smsRequest = this.smsRequestRepository.findById(smsRequestId);
+        if (!smsRequest.isPresent()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(smsRequest.get().getPhoneNumber());
+        }
+    }
+
+    @Transactional
+    public void setStatus(Long smsRequestId, Integer smsStatus) {
+        SmsRequest smsRequest = this.smsRequestRepository.findById(smsRequestId).orElse(null);
+        if (smsRequest != null) {
+            smsRequest.setStatus(smsStatus);
+            this.smsRequestRepository.saveAndFlush(smsRequest);
+        }
     }
 }
