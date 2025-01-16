@@ -1,13 +1,8 @@
 package org.example.notificationsystem.models;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Getter;
 import lombok.Setter;
-import org.joda.time.DateTime;
+import org.example.notificationsystem.utils.NotificationSystemUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -16,8 +11,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -35,18 +29,20 @@ public class SmsRequestElasticsearch {
     @Field(type = FieldType.Text, name = "message")
     private String message;
 
-    private Long createdAt;
+    @Field(type = FieldType.Date, format = DateFormat.basic_date_time)
+    private Date createdAt;
 
-    private Long updatedAt;
+    @Field(type = FieldType.Date, format = DateFormat.basic_date_time)
+    private Date updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
-        updatedAt = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
+        createdAt = NotificationSystemUtils.getNowAsDateIST();
+        updatedAt = NotificationSystemUtils.getNowAsDateIST();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
+        updatedAt = NotificationSystemUtils.getNowAsDateIST();
     }
 }

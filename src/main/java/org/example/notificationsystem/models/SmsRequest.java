@@ -3,10 +3,13 @@ package org.example.notificationsystem.models;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Getter;
 import lombok.Setter;
+import org.example.notificationsystem.utils.NotificationSystemUtils;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "sms_request")
@@ -36,18 +39,18 @@ public class SmsRequest {
     @Column(columnDefinition = "TEXT")
     private String failureComments;
 
-    private LocalDateTime createdAt;
+    private Date createdAt;
 
-    private LocalDateTime updatedAt;
+    private Date updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        createdAt = NotificationSystemUtils.getNowAsDateIST();
+        updatedAt = NotificationSystemUtils.getNowAsDateIST();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = NotificationSystemUtils.getNowAsDateIST();
     }
 }

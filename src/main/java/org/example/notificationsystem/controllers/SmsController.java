@@ -14,8 +14,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.ValidationException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -70,12 +72,18 @@ public class SmsController {
         );
     }
 
+    @GetMapping("/v1/sms/pageable/elasticsearch/all")
+    public ResponseEntity<?> getAllSmsRequestElasticsearch() {
+        System.out.println("Reached ElasticSearchRequest");
+        return ResponseEntity.ok(smsService.getAllSmsRequestsElasticsearch());
+    }
+
     @GetMapping("/v1/sms/pageable/elasticsearch")
     public ResponseEntity<?> getSmsByPhoneNumberAndTimeRangePageable(
             @Valid @RequestBody ElasticSearchRequest query) {
-//        List<SmsRequestElasticsearch> result = smsService.getAllSmsRequestsElasticsearch();
         System.out.println("Reached Here!");
         System.out.println(query);
+
         // Validate query parameters
         NotificationSystemUtils.validateQueryParameters(query);
 
@@ -83,9 +91,14 @@ public class SmsController {
         boolean isPageable = NotificationSystemUtils.isValidPageRequest(query);
 
         // Set time range boundaries
-        LocalDateTime effectiveStartTime = query.getStartTime() != null ? query.getStartTime() : LocalDateTime.MIN;
-        LocalDateTime effectiveEndTime = query.getEndTime() != null ? query.getEndTime() : LocalDateTime.MAX;
+        Date effectiveStartTime = query.getStartTime() != null ? query.getStartTime() : Date.from(Instant.EPOCH);
+        Date effectiveEndTime = query.getEndTime() != null ? query.getEndTime() : Date.from(java.time.Instant.ofEpochMilli(Long.MAX_VALUE));
 
+        System.out.println("effectiveStartTime: " + effectiveStartTime);
+        System.out.println("effectiveEndTime: " + effectiveEndTime);
+        System.out.println("isPageable: " + isPageable);
+        System.out.println("page: " + query.getPage());
+        System.out.println("size: " + query.getSize());
         // Query based on pagination preference
         List<SmsRequestElasticsearch> result = isPageable ?
                 smsService.getAllSmsRequestsElasticSearchFromToPageSize(

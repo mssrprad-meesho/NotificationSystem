@@ -6,15 +6,16 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @Getter
 @Setter
 @Builder
 public class ElasticSearchRequest {
-    private LocalDateTime startTime;
+    private Date startTime;
 
-    private LocalDateTime endTime;
+    private Date endTime;
 
     private int page = -1;
 

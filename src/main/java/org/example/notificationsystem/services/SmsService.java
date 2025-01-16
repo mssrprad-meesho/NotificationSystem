@@ -1,6 +1,5 @@
 package org.example.notificationsystem.services;
 
-import org.elasticsearch.client.RestHighLevelClient;
 import org.example.notificationsystem.constants.StatusConstants;
 import org.example.notificationsystem.kafka.Producer;
 import org.example.notificationsystem.models.PhoneNumber;
@@ -9,36 +8,40 @@ import org.example.notificationsystem.models.SmsRequestElasticsearch;
 import org.example.notificationsystem.repositories.PhoneNumberRepository;
 import org.example.notificationsystem.repositories.SmsRequestElasticsearchRepository;
 import org.example.notificationsystem.repositories.SmsRequestRepository;
+import org.example.notificationsystem.utils.NotificationSystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class SmsService {
 
-    @Autowired
-    private SmsRequestRepository smsRequestRepository;
+    private final SmsRequestRepository smsRequestRepository;
+
+    private final PhoneNumberRepository phoneNumberRepository;
+
+    private final SmsRequestElasticsearchRepository smsRequestElasticsearchRepository;
+
+    private final Producer producer;
 
     @Autowired
-    private PhoneNumberRepository phoneNumberRepository;
-
-    @Autowired
-    private SmsRequestElasticsearchRepository smsRequestElasticsearchRepository;
-
-    @Autowired
-    private Producer producer;
+    public SmsService(SmsRequestRepository smsRequestRepository, PhoneNumberRepository phoneNumberRepository, SmsRequestElasticsearchRepository smsRequestElasticsearchRepository, Producer producer) {
+        this.smsRequestRepository = smsRequestRepository;
+        this.phoneNumberRepository = phoneNumberRepository;
+        this.smsRequestElasticsearchRepository = smsRequestElasticsearchRepository;
+        this.producer = producer;
+    }
 
     @Transactional
     public SmsRequest createSmsRequest(String number, String message) {
         // Get phone number after checking if new phone number
-        PhoneNumber phoneNumber = null;
+        PhoneNumber phoneNumber;
         Optional<PhoneNumber> phoneNumbers = phoneNumberRepository.findByPhoneNumber(number);
         if (!phoneNumbers.isPresent()) {
             phoneNumber = new PhoneNumber();
@@ -55,26 +58,16 @@ public class SmsService {
         smsRequest.setPhoneNumber(phoneNumber.getPhoneNumber());
         smsRequest.setMessage(message);
         smsRequest.setStatus(StatusConstants.IN_PROGRESS.ordinal());
-        smsRequest.setCreatedAt(LocalDateTime.now());
-        smsRequest.setUpdatedAt(LocalDateTime.now());
+        smsRequest.setCreatedAt(NotificationSystemUtils.getNowAsDateIST());
+        smsRequest.setUpdatedAt(NotificationSystemUtils.getNowAsDateIST());
 
         smsRequestRepository.saveAndFlush(smsRequest);
 
         // Save into Elastic Search
         System.out.println("Creating Elastic Search object..... " + smsRequest);
-        SmsRequestElasticsearch smsRequestElasticsearch = new SmsRequestElasticsearch();
-        smsRequestElasticsearch.setCreatedAt(
-                smsRequest.getCreatedAt().toInstant(ZoneOffset.UTC).toEpochMilli()
-        );
-        smsRequestElasticsearch.setUpdatedAt(
-                smsRequest.getUpdatedAt().toInstant(ZoneOffset.UTC).toEpochMilli()
-        );
-        smsRequestElasticsearch.setPhoneNumber(smsRequest.getPhoneNumber());
-        smsRequestElasticsearch.setMessage(smsRequest.getMessage());
-        smsRequestElasticsearch.setSmsRequestId(smsRequest.getId().toString());
+        SmsRequestElasticsearch smsRequestElasticsearch = NotificationSystemUtils.getSmsRequestElasticsearchFromSmsRequest(smsRequest);
 
         try {
-//            smsRequestElasticsearch.toString()
             smsRequestElasticsearchRepository.save(smsRequestElasticsearch);
         } catch (Exception e) {
             e.printStackTrace();
@@ -86,6 +79,8 @@ public class SmsService {
         producer.sendMessage(smsRequest.getId().toString());
         return smsRequest;
     }
+
+
 
     @Transactional
     public List<SmsRequest> getAllSmsRequests() {
@@ -101,12 +96,12 @@ public class SmsService {
     }
 
     @Transactional
-    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromToPageSize(LocalDateTime from, LocalDateTime to, int page, int size) {
+    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromToPageSize(Date from, Date to, int page, int size) {
         return smsRequestElasticsearchRepository.findByCreatedAtIsBetween(from, to, PageRequest.of(page, size));
     }
 
     @Transactional
-    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromTo(LocalDateTime from, LocalDateTime to) {
+    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromTo(Date from, Date to) {
         return smsRequestElasticsearchRepository.findByCreatedAtIsBetween(from, to);
     }
 
@@ -133,11 +128,7 @@ public class SmsService {
     @Transactional
     public Optional<String> getPhoneNumber(Long smsRequestId) {
         Optional<SmsRequest> smsRequest = this.smsRequestRepository.findById(smsRequestId);
-        if (!smsRequest.isPresent()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(smsRequest.get().getPhoneNumber());
-        }
+        return smsRequest.map(SmsRequest::getPhoneNumber);
     }
 
     @Transactional
