@@ -1,7 +1,7 @@
 package org.example.notificationsystem.dto.request;
 
-import lombok.Data;
 import lombok.Builder;
+import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;

@@ -35,7 +35,7 @@ public class BlacklistController {
                         .builder()
                         .data("Successfully Blacklisted")
                         .build()
-                );
+        );
     }
 
     @DeleteMapping("/v1/blacklist")

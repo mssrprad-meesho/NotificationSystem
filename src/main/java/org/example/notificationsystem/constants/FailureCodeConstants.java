@@ -3,14 +3,15 @@ package org.example.notificationsystem.constants;
 import lombok.Getter;
 
 @Getter
-public enum StatusConstants {
-    IN_PROGRESS(0),
-    FINISHED(1),
-    FAILED(2);
+public enum FailureCodeConstants {
+    INVALID_PHONE_NUMBER(0),
+    BLACKLISTED_PHONE_NUMBER(1),
+    EXTERNAL_API_TIMEOUT(2),
+    EXTERNAL_API_ERROR(3);
 
     private final int code;
 
-    StatusConstants(int code) {
+    FailureCodeConstants(int code) {
         this.code = code;
     }
 

@@ -25,17 +25,16 @@ public class Consumer {
 
     @KafkaListener(topics = "notificationsystem", groupId = "group_id")
     public void consume(String smsRequestId) throws IOException {
-        Optional<String> optionalPhoneNumber = this.smsService.getPhoneNumber(Long.parseLong( smsRequestId ));
+        Optional<String> optionalPhoneNumber = this.smsService.getPhoneNumber(Long.parseLong(smsRequestId));
         Optional<org.example.notificationsystem.models.SmsRequest> optionalSmsRequest = this.smsService.getSmsRequest(Long.parseLong(smsRequestId));
         if (optionalPhoneNumber.isPresent() && optionalSmsRequest.isPresent()) {
-            if (blacklistService.isNumberBlacklisted(optionalPhoneNumber.get())){
+            if (blacklistService.isNumberBlacklisted(optionalPhoneNumber.get())) {
                 logger.info("Phone number", optionalPhoneNumber.get(), " is blacklisted.");
                 this.smsService.setStatus(Long.parseLong(smsRequestId), StatusConstants.FAILED.ordinal());
             } else {
                 logger.info("Phone number", optionalPhoneNumber.get(), " is not blacklisted");
 
                 // Send to third party api here
-
                 this.smsService.setStatus(Long.parseLong(smsRequestId), StatusConstants.FINISHED.ordinal());
             }
         } else {

@@ -9,15 +9,15 @@ import org.springframework.data.redis.core.RedisTemplate;
 @SpringBootApplication
 public class NotificationSystemApplication {
 
+    public static void main(String[] args) {
+        SpringApplication.run(NotificationSystemApplication.class, args);
+    }
+
     @Bean
     public RedisTemplate<?, ?> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<?, ?> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
         return template;
-    }
-
-    public static void main(String[] args) {
-        SpringApplication.run(NotificationSystemApplication.class, args);
     }
 }

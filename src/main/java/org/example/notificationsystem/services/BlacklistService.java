@@ -52,7 +52,7 @@ public class BlacklistService {
         phoneNumberList.forEach(phoneNumber -> {
             phoneNumber.setBlackListed(true);
             this.template.opsForValue().set(
-                RedisConstants.STRING_KEY_PREFIX + phoneNumber.getPhoneNumber(), Boolean.TRUE
+                    RedisConstants.STRING_KEY_PREFIX + phoneNumber.getPhoneNumber(), Boolean.TRUE
             );
         });
         this.phoneNumberRepository.saveAllAndFlush(phoneNumberList);
