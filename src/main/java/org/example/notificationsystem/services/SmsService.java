@@ -106,6 +106,16 @@ public class SmsService {
     }
 
     @Transactional
+    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToPageSize(String substr, Date from, Date to, int page, int size) {
+        return smsRequestElasticsearchRepository.findByMessageContainsIgnoreCaseAndCreatedAtIsBetween(substr, from, to, PageRequest.of(page, size));
+    }
+
+    @Transactional
+    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromTo(String substr,  Date from, Date to) {
+        return smsRequestElasticsearchRepository.findByMessageContainsIgnoreCaseAndCreatedAtIsBetween(substr, from, to);
+    }
+
+    @Transactional
     public Optional<SmsRequest> getSmsRequest(Long Id) {
         return smsRequestRepository.findById(Id);
     }

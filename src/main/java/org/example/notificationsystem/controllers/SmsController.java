@@ -4,7 +4,6 @@ import org.example.notificationsystem.dto.request.ElasticSearchRequest;
 import org.example.notificationsystem.dto.response.*;
 import org.example.notificationsystem.models.SmsRequest;
 import org.example.notificationsystem.models.SmsRequestElasticsearch;
-import org.example.notificationsystem.repositories.SmsRequestElasticsearchRepository;
 import org.example.notificationsystem.services.SmsService;
 import org.example.notificationsystem.utils.NotificationSystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.ValidationException;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -24,12 +21,10 @@ import java.util.Optional;
 @RestController
 public class SmsController {
     private final SmsService smsService;
-    private final SmsRequestElasticsearchRepository smsRequestElasticsearchRepository;
 
     @Autowired
-    public SmsController(SmsService smsService, SmsRequestElasticsearchRepository smsRequestElasticsearchRepository) {
+    public SmsController(SmsService smsService) {
         this.smsService = smsService;
-        this.smsRequestElasticsearchRepository = smsRequestElasticsearchRepository;
     }
 
     @GetMapping("/v1/sms/all")
@@ -85,10 +80,13 @@ public class SmsController {
         System.out.println(query);
 
         // Validate query parameters
-        NotificationSystemUtils.validateQueryParameters(query);
+//        NotificationSystemUtils.validateQueryParameters(query);
 
-        // Determine pagination settings
+        // Determine pagination
         boolean isPageable = NotificationSystemUtils.isValidPageRequest(query);
+
+        // Determine
+        boolean messageContaining = query.getMessageContaining() != null;
 
         // Set time range boundaries
         Date effectiveStartTime = query.getStartTime() != null ? query.getStartTime() : Date.from(Instant.EPOCH);
@@ -99,18 +97,37 @@ public class SmsController {
         System.out.println("isPageable: " + isPageable);
         System.out.println("page: " + query.getPage());
         System.out.println("size: " + query.getSize());
+        System.out.println("messageContaining: " + query.getMessageContaining());
+
         // Query based on pagination preference
-        List<SmsRequestElasticsearch> result = isPageable ?
-                smsService.getAllSmsRequestsElasticSearchFromToPageSize(
+        List<SmsRequestElasticsearch> result;
+        if (isPageable) {
+            if (messageContaining) {
+                result = smsService.getAllSmsRequestsElasticSearchContainingFromToPageSize(
+                        query.getMessageContaining(),
                         effectiveStartTime,
                         effectiveEndTime,
                         query.getPage(),
-                        query.getSize())
-                :
-                smsService.getAllSmsRequestsElasticSearchFromTo(
+                        query.getSize());
+            } else {
+                result = smsService.getAllSmsRequestsElasticSearchFromToPageSize(
+                        effectiveStartTime,
+                        effectiveEndTime,
+                        query.getPage(),
+                        query.getSize());
+            }
+        } else {
+            if (messageContaining) {
+                result = smsService.getAllSmsRequestsElasticSearchContainingFromTo(
+                        query.getMessageContaining(),
                         effectiveStartTime,
                         effectiveEndTime);
-
+            } else {
+                result = smsService.getAllSmsRequestsElasticSearchFromTo(
+                        effectiveStartTime,
+                        effectiveEndTime);
+            }
+        }
         System.out.println(result);
         System.out.println("Reached Here!");
 

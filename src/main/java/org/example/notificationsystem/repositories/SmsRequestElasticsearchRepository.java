@@ -14,4 +14,10 @@ public interface SmsRequestElasticsearchRepository extends ElasticsearchReposito
     List<SmsRequestElasticsearch> findByCreatedAtIsBetween(Date createdAtAfter, Date createdAtBefore, Pageable pageable);
 
     List<SmsRequestElasticsearch> findByCreatedAtIsBetween(Date createdAtAfter, Date createdAtBefore);
+
+    List<SmsRequestElasticsearch> getSmsRequestElasticsearchByMessageContainingIgnoreCase(String message);
+
+    List<SmsRequestElasticsearch> findByMessageContainsIgnoreCaseAndCreatedAtIsBetween(String message, Date createdAtAfter, Date createdAtBefore, Pageable pageable);
+
+    List<SmsRequestElasticsearch> findByMessageContainsIgnoreCaseAndCreatedAtIsBetween(String message, Date createdAtAfter, Date createdAtBefore);
 }
