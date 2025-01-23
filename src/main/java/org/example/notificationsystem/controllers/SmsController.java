@@ -18,6 +18,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import static org.example.notificationsystem.utils.NotificationSystemUtils.isValidPageRequest;
+
 @RestController
 public class SmsController {
     private final SmsService smsService;
@@ -76,28 +78,20 @@ public class SmsController {
     @GetMapping("/v1/sms/pageable/elasticsearch")
     public ResponseEntity<?> getSmsByPhoneNumberAndTimeRangePageable(
             @Valid @RequestBody ElasticSearchRequest query) {
-        System.out.println("Reached Here!");
-        System.out.println(query);
-
-        // Validate query parameters
-//        NotificationSystemUtils.validateQueryParameters(query);
-
         // Determine pagination
-        boolean isPageable = NotificationSystemUtils.isValidPageRequest(query);
+        boolean isPageable = isValidPageRequest(query);
 
-        // Determine
+        // Determine message containing flag
         boolean messageContaining = query.getMessageContaining() != null;
 
         // Set time range boundaries
-        Date effectiveStartTime = query.getStartTime() != null ? query.getStartTime() : Date.from(Instant.EPOCH);
-        Date effectiveEndTime = query.getEndTime() != null ? query.getEndTime() : Date.from(java.time.Instant.ofEpochMilli(Long.MAX_VALUE));
+        Date effectiveStartTime = query.getStartTime() != null
+                ? query.getStartTime()
+                : Date.from(Instant.EPOCH);
 
-        System.out.println("effectiveStartTime: " + effectiveStartTime);
-        System.out.println("effectiveEndTime: " + effectiveEndTime);
-        System.out.println("isPageable: " + isPageable);
-        System.out.println("page: " + query.getPage());
-        System.out.println("size: " + query.getSize());
-        System.out.println("messageContaining: " + query.getMessageContaining());
+        Date effectiveEndTime = query.getEndTime() != null
+                ? query.getEndTime()
+                : Date.from(java.time.Instant.ofEpochMilli(Long.MAX_VALUE));
 
         // Query based on pagination preference
         List<SmsRequestElasticsearch> result;
@@ -128,8 +122,6 @@ public class SmsController {
                         effectiveEndTime);
             }
         }
-        System.out.println(result);
-        System.out.println("Reached Here!");
 
         return ResponseEntity.ok(
                 ElasticSearchResponse
@@ -138,7 +130,6 @@ public class SmsController {
                         .build()
         );
     }
-
 
     @GetMapping("/v1/sms/{request_id}")
     public ResponseEntity<?> getSmsRequestById(@PathVariable Long request_id) {
@@ -187,5 +178,4 @@ public class SmsController {
             throw new ValidationException("INVALID_REQUEST", e);
         }
     }
-
 }

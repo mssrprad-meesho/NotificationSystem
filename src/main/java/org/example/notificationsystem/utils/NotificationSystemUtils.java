@@ -15,7 +15,11 @@ public class NotificationSystemUtils {
     }
 
     public static boolean isValidPageRequest(ElasticSearchRequest query) {
-        return true;
+        // Check if both page and size are non-null and valid
+        return query.getPage() != null
+                && query.getSize() != null
+                && query.getPage() >= 0
+                && query.getSize() > 0;
     }
 
     public static SmsRequestElasticsearch getSmsRequestElasticsearchFromSmsRequest(SmsRequest smsRequest) {
