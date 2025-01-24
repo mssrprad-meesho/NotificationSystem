@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class BlacklistService {
@@ -48,13 +50,34 @@ public class BlacklistService {
 
     @Transactional
     public void addNumbersToBlacklist(List<String> numbers) {
+
+        // Get existing numbers from table
         List<PhoneNumber> phoneNumberList = this.phoneNumberRepository.findByPhoneNumberIn(numbers);
+        Set<String> existingNumbers = phoneNumberList.stream()
+                .map(PhoneNumber::getPhoneNumber)
+                .collect(Collectors.toSet());
+
+        // Update their entries to set blacklisted=True
         phoneNumberList.forEach(phoneNumber -> {
             phoneNumber.setBlackListed(true);
             this.template.opsForValue().set(
                     RedisConstants.STRING_KEY_PREFIX + phoneNumber.getPhoneNumber(), Boolean.TRUE
             );
         });
+
+        // Which of numbers are new? Create them now (with blacklisted=True)
+        List<PhoneNumber> newPhoneNumbers = numbers.stream()
+                .filter(number -> !existingNumbers.contains(number))
+                .map(number -> {
+                    PhoneNumber phoneNumber = new PhoneNumber();
+                    phoneNumber.setPhoneNumber(number);
+                    phoneNumber.setBlackListed(true);
+                    return phoneNumber;
+                })
+                .collect(Collectors.toList());
+
+        // Save and Flush all changes
+        this.phoneNumberRepository.saveAll(newPhoneNumbers);
         this.phoneNumberRepository.saveAllAndFlush(phoneNumberList);
     }
 

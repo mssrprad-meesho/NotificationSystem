@@ -10,7 +10,14 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Optional;
 
-@Component
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Service;
+
+@Service("NotificationService")
 public class Consumer {
     @Autowired
     private BlacklistService blacklistService;
@@ -18,8 +25,8 @@ public class Consumer {
     @Autowired
     private SmsService smsService;
 
-    @KafkaListener(topics = "notificationsystem", groupId = "group_id")
-    public void consume(String smsRequestId) throws IOException {
+    @KafkaListener(topics = "${spring.kafka.topic_name}", containerFactory="NotificationContainerFactory")
+    public void consume(@Payload String smsRequestId, Acknowledgment ack) {
         Optional<String> optionalPhoneNumber = this.smsService.getPhoneNumber(Long.parseLong(smsRequestId));
         Optional<org.example.notificationsystem.models.SmsRequest> optionalSmsRequest = this.smsService.getSmsRequest(Long.parseLong(smsRequestId));
         if (optionalPhoneNumber.isPresent() && optionalSmsRequest.isPresent()) {
@@ -35,5 +42,6 @@ public class Consumer {
         } else {
 //            logger.info("Invalid Sms Request", smsRequestId);
         }
+        ack.acknowledge();
     }
 }

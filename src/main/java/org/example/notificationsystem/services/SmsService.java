@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 @Service
 public class SmsService {
@@ -39,7 +40,7 @@ public class SmsService {
     }
 
     @Transactional
-    public SmsRequest createSmsRequest(String number, String message) {
+    public SmsRequest createSmsRequest(String number, String message) throws ExecutionException, InterruptedException {
         // Get phone number after checking if new phone number
         PhoneNumber phoneNumber;
         Optional<PhoneNumber> phoneNumbers = phoneNumberRepository.findByPhoneNumber(number);
@@ -76,7 +77,7 @@ public class SmsService {
         }
 
         // Send Kafka Message
-        producer.sendMessage(smsRequest.getId().toString());
+        boolean success = producer.sendMessage(smsRequest.getId().toString());
         return smsRequest;
     }
 
