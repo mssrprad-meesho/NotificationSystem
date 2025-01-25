@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
+import java.util.Objects;
+
 @SpringBootApplication
 public class NotificationSystemApplication {
 
@@ -17,7 +19,7 @@ public class NotificationSystemApplication {
     public RedisTemplate<?, ?> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<?, ?> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
-
+        Objects.requireNonNull(template.getConnectionFactory()).getConnection().serverCommands().flushAll();
         return template;
     }
 }
