@@ -10,7 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
 
 @RestController
 public class BlacklistController {
@@ -27,12 +28,12 @@ public class BlacklistController {
     public ResponseEntity<?> getBlacklistedPhoneNumbers() {
         logger.info("GET /v1/blacklist called");
         try {
-            List<String> blacklistedNumbers = this.blacklistService.getAllBlacklistedNumbers();
+            Set<String> blacklistedNumbers = this.blacklistService.getAllBlacklistedNumbers();
             logger.info("Fetched {} blacklisted numbers", blacklistedNumbers.size());
             return ResponseEntity.ok(
                     GetAllBlacklistedNumbersResponse
                             .builder()
-                            .data(blacklistedNumbers)
+                            .data(new ArrayList<>(blacklistedNumbers))
                             .build()
             );
         } catch (Exception e) {
@@ -45,7 +46,7 @@ public class BlacklistController {
     public ResponseEntity<?> addNumbersToBlacklist(@Valid @RequestBody BlackListRequest blackListRequest) {
         logger.info("POST /v1/blacklist called with request: {}", blackListRequest);
         try {
-            this.blacklistService.addNumbersToBlacklist(blackListRequest.getPhoneNumbers());
+            this.blacklistService.addNumbersToBlacklist(blackListRequest.getPhoneNumbers().toArray(new String[0]));
             logger.info("Successfully blacklisted {} numbers", blackListRequest.getPhoneNumbers().size());
             return ResponseEntity.ok(
                     BlackListNumbersResponse
@@ -63,7 +64,7 @@ public class BlacklistController {
     public ResponseEntity<?> removeNumbersFromBlacklist(@Valid @RequestBody BlackListRequest blackListRequest) {
         logger.info("DELETE /v1/blacklist called with request: {}", blackListRequest);
         try {
-            this.blacklistService.removeNumbersFromBlacklist(blackListRequest.getPhoneNumbers());
+            this.blacklistService.removeNumbersFromBlacklist(blackListRequest.getPhoneNumbers().toArray(new String[0]));
             logger.info("Successfully whitelisted {} numbers", blackListRequest.getPhoneNumbers().size());
             return ResponseEntity.ok(
                     BlackListNumbersResponse

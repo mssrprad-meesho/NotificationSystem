@@ -36,7 +36,6 @@ public class Consumer {
 
             if (optionalPhoneNumber.isPresent() && optionalSmsRequest.isPresent()) {
                 String phoneNumber = optionalPhoneNumber.get();
-                org.example.notificationsystem.models.SmsRequest smsRequest = optionalSmsRequest.get();
 
                 logger.info("Found SMS request ID: {} for phone number: {}", smsRequestId, phoneNumber);
 
@@ -47,6 +46,7 @@ public class Consumer {
                     logger.info("Phone number {} is not blacklisted. Proceeding with SMS sending...", phoneNumber);
 
                     // Send to third-party API here
+
 
                     logger.info("SMS request ID: {} sent successfully. Marking as FINISHED", smsRequestId);
                     this.smsService.setStatus(Long.parseLong(smsRequestId), StatusConstants.FINISHED.ordinal());

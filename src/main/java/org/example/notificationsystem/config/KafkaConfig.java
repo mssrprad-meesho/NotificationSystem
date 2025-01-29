@@ -30,7 +30,6 @@ public class KafkaConfig {
         configs.put(AdminClientConfig.SOCKET_CONNECTION_SETUP_TIMEOUT_MS_CONFIG, 1000);
         configs.put(AdminClientConfig.RETRY_BACKOFF_MS_CONFIG, 500);
 
-
         return new KafkaAdmin(configs);
     }
 }

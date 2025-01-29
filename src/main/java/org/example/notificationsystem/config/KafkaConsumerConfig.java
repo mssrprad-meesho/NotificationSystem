@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+
+// https://docs.spring.io/spring-kafka/reference/kafka/receiving-messages/listener-annotation.html
 @EnableKafka
 @Configuration("NotificationConfiguration")
 public class KafkaConsumerConfig {

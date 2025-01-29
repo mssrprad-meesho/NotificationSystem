@@ -68,6 +68,10 @@
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-logging</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -121,9 +125,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-log4j2</artifactId>
         </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-
-
 
     <build>
         <plugins>
@@ -141,5 +148,11 @@
                 </configuration>
             </plugin>
         </plugins>
+
+        <testResources>
+            <testResource>
+                <directory>src/main/webapp</directory>
+            </testResource>
+        </testResources>
     </build>
 </project>

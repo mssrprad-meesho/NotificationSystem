@@ -14,12 +14,4 @@ public class NotificationSystemApplication {
     public static void main(String[] args) {
         SpringApplication.run(NotificationSystemApplication.class, args);
     }
-
-    @Bean
-    public RedisTemplate<?, ?> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<?, ?> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
-        Objects.requireNonNull(template.getConnectionFactory()).getConnection().serverCommands().flushAll();
-        return template;
-    }
 }

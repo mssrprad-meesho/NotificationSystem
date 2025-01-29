@@ -1,14 +1,11 @@
 package org.example.notificationsystem.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.notificationsystem.utils.NotificationSystemUtils;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -19,11 +16,6 @@ public class SmsRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "phone_number_id")
-    @JsonBackReference
-    private PhoneNumber number;
 
     @Column(name = "phone_number", nullable = false)
     @Size(min = 4, max = 17, message = "{validation.phone.number.size}")
