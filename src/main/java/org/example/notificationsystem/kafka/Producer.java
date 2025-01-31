@@ -29,9 +29,11 @@ public class Producer {
 
     public boolean publishSync(String smsRequestId) {
         logger.info("Attempting to send SMS request ID: {} to Kafka topic: {}", smsRequestId, topicName);
+
         String key = smsRequestId;
         String value = smsRequestId;
         ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicName, key, value);
+
         RecordMetadata recordMetadata;
         try {
             recordMetadata = producer.send(producerRecord).get();

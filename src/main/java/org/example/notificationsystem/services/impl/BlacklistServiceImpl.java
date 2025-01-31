@@ -21,7 +21,6 @@ public class BlacklistServiceImpl implements BlacklistService {
         this.redisTemplate = template;
     }
 
-    @Transactional
     public Boolean isNumberBlacklisted(String number) {
         logger.info("Checking if number {} is blacklisted", number);
 
@@ -43,7 +42,6 @@ public class BlacklistServiceImpl implements BlacklistService {
         }
     }
 
-    @Transactional
     public Set<String> getAllBlacklistedNumbers() {
         logger.info("Fetching all blacklisted numbers from DB");
         Set<String> phoneNumbers = this.redisTemplate.opsForSet().members(RedisConstants.blacklisted_key);

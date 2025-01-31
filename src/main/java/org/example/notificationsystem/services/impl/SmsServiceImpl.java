@@ -72,7 +72,6 @@ public class SmsServiceImpl implements SmsService {
         return smsRequest;
     }
 
-    @Transactional
     public List<SmsRequest> getAllSmsRequests() {
         logger.info("Fetching all SMS requests from MySQL");
         List<SmsRequest> smsRequests = smsRequestRepository.findAll();
@@ -80,7 +79,6 @@ public class SmsServiceImpl implements SmsService {
         return smsRequests;
     }
 
-    @Transactional
     public List<SmsRequestElasticsearch> getAllSmsRequestsElasticsearch() {
         logger.info("Fetching all SMS requests from Elasticsearch");
         List<SmsRequestElasticsearch> smsRequestElasticsearchList = new ArrayList<>();
@@ -90,55 +88,46 @@ public class SmsServiceImpl implements SmsService {
         return smsRequestElasticsearchList;
     }
 
-    @Transactional
     public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromToPageSize(Date from, Date to, int page, int size) {
         logger.info("Fetching SMS requests from Elasticsearch between {} and {} with pagination (page: {}, size: {})", from, to, page, size);
         return smsRequestElasticsearchRepository.findByCreatedAtIsBetween(from, to, PageRequest.of(page, size));
     }
 
-    @Transactional
     public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromTo(Date from, Date to) {
         logger.info("Fetching SMS requests from Elasticsearch between {} and {}", from, to);
         return smsRequestElasticsearchRepository.findByCreatedAtIsBetween(from, to);
     }
 
-    @Transactional
     public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToPageSize(String substr, Date from, Date to, int page, int size) {
         logger.info("Fetching SMS requests containing '{}' from Elasticsearch between {} and {} with pagination (page: {}, size: {})", substr, from, to, page, size);
         return smsRequestElasticsearchRepository.findByMessageContainsIgnoreCaseAndCreatedAtIsBetween(substr, from, to, PageRequest.of(page, size));
     }
 
-    @Transactional
     public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromTo(String substr, Date from, Date to) {
         logger.info("Fetching SMS requests containing '{}' from Elasticsearch between {} and {}", substr, from, to);
         return smsRequestElasticsearchRepository.findByMessageContainsIgnoreCaseAndCreatedAtIsBetween(substr, from, to);
     }
 
-    @Transactional
     public Optional<SmsRequest> getSmsRequest(Long Id) {
         logger.info("Fetching SMS request by ID: {}", Id);
         return smsRequestRepository.findById(Id);
     }
 
-    @Transactional
     public List<SmsRequest> getFinishedSmsRequests() {
         logger.info("Fetching finished SMS requests");
         return smsRequestRepository.findByStatus(StatusConstants.FINISHED.ordinal());
     }
 
-    @Transactional
     public List<SmsRequest> getInProgressSmsRequests() {
         logger.info("Fetching in-progress SMS requests");
         return smsRequestRepository.findByStatus(StatusConstants.IN_PROGRESS.ordinal());
     }
 
-    @Transactional
     public List<SmsRequest> getFailedSmsRequests() {
         logger.info("Fetching failed SMS requests");
         return smsRequestRepository.findByStatus(StatusConstants.FAILED.ordinal());
     }
 
-    @Transactional
     public Optional<String> getPhoneNumber(Long smsRequestId) {
         logger.info("Fetching phone number for SMS request ID: {}", smsRequestId);
         Optional<SmsRequest> smsRequest = smsRequestRepository.findById(smsRequestId);
