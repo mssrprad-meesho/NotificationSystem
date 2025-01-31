@@ -1,37 +1,47 @@
 package org.example.notificationsystem.kafka;
 
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 
 @Service
 public class Producer {
 
     private static final Logger logger = LoggerFactory.getLogger(Producer.class);
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaProducer<String, String> producer;
     private final String topicName;
 
     @Autowired
-    public Producer(KafkaTemplate<String, String> kafkaTemplate,
+    public Producer(KafkaProducer<String, String> producer,
                     @Value("${spring.kafka.topic_name}") String topicName) {
-        this.kafkaTemplate = kafkaTemplate;
+        this.producer = producer;
         this.topicName = topicName;
     }
 
-    public boolean sendMessage(String smsRequestId) {
+    public boolean publishSync(String smsRequestId) {
+        logger.info("Attempting to send SMS request ID: {} to Kafka topic: {}", smsRequestId, topicName);
+        String key = smsRequestId;
+        String value = smsRequestId;
+        ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicName, key, value);
+        RecordMetadata recordMetadata;
         try {
-            logger.info("Attempting to send SMS request ID: {} to Kafka topic: {}", smsRequestId, topicName);
-            SendResult<String, String> sendResult = kafkaTemplate.send(topicName, smsRequestId).get();
-            logger.info("Successfully sent SMS request ID: {} to Kafka topic: {} with result: {}", smsRequestId, topicName, sendResult.getRecordMetadata());
-        } catch (Exception e) {
-            logger.error("Failed to send SMS request ID: {} to Kafka topic: {}. Exception: {}", smsRequestId, topicName, e.getMessage(), e);
+            recordMetadata = producer.send(producerRecord).get();
+            logger.info("Successfully sent SMS request ID: {}, to Kafka topic: {}, to partition: {}", smsRequestId, recordMetadata.topic(), recordMetadata.partition());
+            return true;
+        } catch (InterruptedException | ExecutionException e) {
+            logger.info("Failed to send SMS request ID: {} to Kafka topic: {}", smsRequestId, topicName);
+            logger.error(e.getMessage(), e);
+            logger.error(Arrays.toString(e.getStackTrace()));
             return false;
         }
-        return true;
     }
 }

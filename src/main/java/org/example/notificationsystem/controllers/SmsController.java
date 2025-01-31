@@ -4,7 +4,7 @@ import org.example.notificationsystem.dto.request.ElasticSearchRequest;
 import org.example.notificationsystem.dto.response.*;
 import org.example.notificationsystem.models.SmsRequest;
 import org.example.notificationsystem.models.SmsRequestElasticsearch;
-import org.example.notificationsystem.services.SmsService;
+import org.example.notificationsystem.services.impl.SmsServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,18 +25,18 @@ import static org.example.notificationsystem.utils.NotificationSystemUtils.isVal
 public class SmsController {
 
     private static final Logger logger = LoggerFactory.getLogger(SmsController.class);
-    private final SmsService smsService;
+    private final SmsServiceImpl smsServiceImpl;
 
     @Autowired
-    public SmsController(SmsService smsService) {
-        this.smsService = smsService;
+    public SmsController(SmsServiceImpl smsServiceImpl) {
+        this.smsServiceImpl = smsServiceImpl;
     }
 
     @GetMapping("/v1/sms/all")
     public ResponseEntity<?> getAllSmsRequests() {
         logger.info("GET /v1/sms/all called");
         try {
-            List<SmsRequest> smsRequests = this.smsService.getAllSmsRequests();
+            List<SmsRequest> smsRequests = this.smsServiceImpl.getAllSmsRequests();
             logger.info("Fetched {} SMS requests", smsRequests.size());
             return ResponseEntity.ok(
                     GetAllSmsResponse
@@ -54,7 +54,7 @@ public class SmsController {
     public ResponseEntity<?> getFinishedSmsRequests() {
         logger.info("GET /v1/sms/finished called");
         try {
-            List<SmsRequest> finishedSmsRequests = this.smsService.getFinishedSmsRequests();
+            List<SmsRequest> finishedSmsRequests = this.smsServiceImpl.getFinishedSmsRequests();
             logger.info("Fetched {} finished SMS requests", finishedSmsRequests.size());
             return ResponseEntity.ok(
                     GetAllSmsResponse
@@ -72,7 +72,7 @@ public class SmsController {
     public ResponseEntity<?> getInProgressSmsRequests() {
         logger.info("GET /v1/sms/in_progress called");
         try {
-            List<SmsRequest> inProgressSmsRequests = this.smsService.getInProgressSmsRequests();
+            List<SmsRequest> inProgressSmsRequests = this.smsServiceImpl.getInProgressSmsRequests();
             logger.info("Fetched {} in-progress SMS requests", inProgressSmsRequests.size());
             return ResponseEntity.ok(
                     GetAllSmsResponse
@@ -90,7 +90,7 @@ public class SmsController {
     public ResponseEntity<?> getFailedSmsRequests() {
         logger.info("GET /v1/sms/failed called");
         try {
-            List<SmsRequest> failedSmsRequests = this.smsService.getFailedSmsRequests();
+            List<SmsRequest> failedSmsRequests = this.smsServiceImpl.getFailedSmsRequests();
             logger.info("Fetched {} failed SMS requests", failedSmsRequests.size());
             return ResponseEntity.ok(
                     GetAllSmsResponse
@@ -108,7 +108,7 @@ public class SmsController {
     public ResponseEntity<?> getAllSmsRequestElasticsearch() {
         logger.info("GET /v1/sms/pageable/elasticsearch/all called");
         try {
-            List<SmsRequestElasticsearch> result = smsService.getAllSmsRequestsElasticsearch();
+            List<SmsRequestElasticsearch> result = smsServiceImpl.getAllSmsRequestsElasticsearch();
             logger.info("Fetched {} SMS requests from Elasticsearch", result.size());
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -130,14 +130,14 @@ public class SmsController {
             List<SmsRequestElasticsearch> result;
             if (isPageable) {
                 if (messageContaining) {
-                    result = smsService.getAllSmsRequestsElasticSearchContainingFromToPageSize(
+                    result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromToPageSize(
                             query.getMessageContaining(),
                             effectiveStartTime,
                             effectiveEndTime,
                             query.getPage(),
                             query.getSize());
                 } else {
-                    result = smsService.getAllSmsRequestsElasticSearchFromToPageSize(
+                    result = smsServiceImpl.getAllSmsRequestsElasticSearchFromToPageSize(
                             effectiveStartTime,
                             effectiveEndTime,
                             query.getPage(),
@@ -145,12 +145,12 @@ public class SmsController {
                 }
             } else {
                 if (messageContaining) {
-                    result = smsService.getAllSmsRequestsElasticSearchContainingFromTo(
+                    result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromTo(
                             query.getMessageContaining(),
                             effectiveStartTime,
                             effectiveEndTime);
                 } else {
-                    result = smsService.getAllSmsRequestsElasticSearchFromTo(
+                    result = smsServiceImpl.getAllSmsRequestsElasticSearchFromTo(
                             effectiveStartTime,
                             effectiveEndTime);
                 }
@@ -172,7 +172,7 @@ public class SmsController {
     public ResponseEntity<?> getSmsRequestById(@PathVariable Long request_id) {
         logger.info("GET /v1/sms/{} called", request_id);
         try {
-            Optional<SmsRequest> optionalSmsRequest = this.smsService.getSmsRequest(request_id);
+            Optional<SmsRequest> optionalSmsRequest = this.smsServiceImpl.getSmsRequest(request_id);
             if (optionalSmsRequest.isPresent()) {
                 logger.info("Found SMS request with ID: {}", request_id);
                 return ResponseEntity.ok(
@@ -203,7 +203,7 @@ public class SmsController {
     ) {
         logger.info("POST /v1/sms/send called with request: {}", smsRequest);
         try {
-            String requestId = this.smsService.createSmsRequest(smsRequest.getPhoneNumber(), smsRequest.getMessage()).getId().toString();
+            String requestId = this.smsServiceImpl.createSmsRequest(smsRequest.getPhoneNumber(), smsRequest.getMessage()).getId().toString();
             logger.info("Successfully created SMS request with ID: {}", requestId);
             return ResponseEntity.ok(SmsRequestResponse
                     .builder()

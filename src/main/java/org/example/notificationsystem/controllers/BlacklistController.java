@@ -3,7 +3,7 @@ package org.example.notificationsystem.controllers;
 import org.example.notificationsystem.dto.request.BlackListRequest;
 import org.example.notificationsystem.dto.response.BlackListNumbersResponse;
 import org.example.notificationsystem.dto.response.GetAllBlacklistedNumbersResponse;
-import org.example.notificationsystem.services.BlacklistService;
+import org.example.notificationsystem.services.impl.BlacklistServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -18,17 +18,17 @@ public class BlacklistController {
 
     private static final Logger logger = LoggerFactory.getLogger(BlacklistController.class);
 
-    private final BlacklistService blacklistService;
+    private final BlacklistServiceImpl blacklistServiceImpl;
 
-    public BlacklistController(BlacklistService blacklistService) {
-        this.blacklistService = blacklistService;
+    public BlacklistController(BlacklistServiceImpl blacklistServiceImpl) {
+        this.blacklistServiceImpl = blacklistServiceImpl;
     }
 
     @GetMapping("/v1/blacklist")
     public ResponseEntity<?> getBlacklistedPhoneNumbers() {
         logger.info("GET /v1/blacklist called");
         try {
-            Set<String> blacklistedNumbers = this.blacklistService.getAllBlacklistedNumbers();
+            Set<String> blacklistedNumbers = this.blacklistServiceImpl.getAllBlacklistedNumbers();
             logger.info("Fetched {} blacklisted numbers", blacklistedNumbers.size());
             return ResponseEntity.ok(
                     GetAllBlacklistedNumbersResponse
@@ -46,7 +46,7 @@ public class BlacklistController {
     public ResponseEntity<?> addNumbersToBlacklist(@Valid @RequestBody BlackListRequest blackListRequest) {
         logger.info("POST /v1/blacklist called with request: {}", blackListRequest);
         try {
-            this.blacklistService.addNumbersToBlacklist(blackListRequest.getPhoneNumbers().toArray(new String[0]));
+            this.blacklistServiceImpl.addNumbersToBlacklist(blackListRequest.getPhoneNumbers().toArray(new String[0]));
             logger.info("Successfully blacklisted {} numbers", blackListRequest.getPhoneNumbers().size());
             return ResponseEntity.ok(
                     BlackListNumbersResponse
@@ -64,7 +64,7 @@ public class BlacklistController {
     public ResponseEntity<?> removeNumbersFromBlacklist(@Valid @RequestBody BlackListRequest blackListRequest) {
         logger.info("DELETE /v1/blacklist called with request: {}", blackListRequest);
         try {
-            this.blacklistService.removeNumbersFromBlacklist(blackListRequest.getPhoneNumbers().toArray(new String[0]));
+            this.blacklistServiceImpl.removeNumbersFromBlacklist(blackListRequest.getPhoneNumbers().toArray(new String[0]));
             logger.info("Successfully whitelisted {} numbers", blackListRequest.getPhoneNumbers().size());
             return ResponseEntity.ok(
                     BlackListNumbersResponse

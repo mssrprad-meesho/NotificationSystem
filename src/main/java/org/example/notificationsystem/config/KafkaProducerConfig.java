@@ -1,5 +1,6 @@
 package org.example.notificationsystem.config;
 
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,20 +15,15 @@ import java.util.Map;
 @Configuration
 public class KafkaProducerConfig {
 
-    @Value("${spring.kafka.producer.bootstrap-servers}")
+    @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
     @Bean
-    public <K, V> ProducerFactory<K, V> createOrderProducerFactory(){
+    public <K, V> KafkaProducer<K, V> createOrderProducerFactory(){
         Map<String,Object> config = new HashMap<>();
         config.put(org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         config.put(org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        return new DefaultKafkaProducerFactory<>(config);
-    }
-
-    @Bean
-    public <K, V> KafkaTemplate<K, V> createOrderKafkaTemplate(){
-        return new KafkaTemplate<>(createOrderProducerFactory());
+        return new KafkaProducer<>(config);
     }
 }

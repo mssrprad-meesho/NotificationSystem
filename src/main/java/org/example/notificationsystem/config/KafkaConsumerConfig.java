@@ -24,7 +24,7 @@ import java.util.UUID;
 @Configuration("NotificationConfiguration")
 public class KafkaConsumerConfig {
 
-    @Value("${spring.kafka.consumer.bootstrap-servers}")
+    @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
     @Value("${spring.kafka.consumer.group-id}")
@@ -35,10 +35,8 @@ public class KafkaConsumerConfig {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        props.put(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
 
         return new DefaultKafkaConsumerFactory<>(props,new StringDeserializer(),
                 new JsonDeserializer<>(String.class));
