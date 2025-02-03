@@ -8,13 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaAdmin;
-
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.*;
-
-import static org.example.notificationsystem.constants.Time.INDIA_ZONE_ID;
 
 @Configuration
 public class KafkaConfig {
@@ -25,6 +19,11 @@ public class KafkaConfig {
     @Value(value="${spring.kafka.topic_name}")
     private String topicName;
 
+    /* https://www.confluent.io/blog/how-choose-number-topics-partitions-kafka-cluster/
+    A rough formula for picking the number of partitions is based on throughput.
+    You measure the throughout that you can achieve on a single partition for production (call it p) and consumption (call it c).
+    Let’s say your target throughput is t. Then you need to have at least max(t/p, t/c) partitions.
+    */
     @Value(value="${spring.kafka.num_partitions}")
     private int numPartitions;
 

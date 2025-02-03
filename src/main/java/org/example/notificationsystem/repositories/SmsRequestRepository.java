@@ -1,11 +1,9 @@
 package org.example.notificationsystem.repositories;
 
 import org.example.notificationsystem.models.SmsRequest;
-import org.example.notificationsystem.models.SmsRequestElasticsearch;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,5 +15,5 @@ public interface SmsRequestRepository extends JpaRepository<SmsRequest, Long> {
 
     Optional<SmsRequest> findById(Long id);
 
-    List<SmsRequestElasticsearch> findByCreatedAtIsBetween(LocalDateTime createdAtAfter, LocalDateTime createdAtBefore);
+    List<SmsRequest> findByCreatedAtIsBetween(Date createdAtAfter, Date createdAtBefore);
 }

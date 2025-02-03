@@ -1,7 +1,7 @@
 /opt/homebrew/bin/zookeeper-server-start /opt/homebrew/etc/zookeeper/zoo.cfg
 /opt/homebrew/bin/kafka-server-stop
 // Delete kafka-logs if needed
-rm -rf /opt/homebrew/var/lib/kafka-logs
+rm -rf /opt/homebrew/var/lib/kafka-logs*
 /opt/homebrew/bin/kafka-server-start /opt/homebrew/etc/kafka/server.properties
 /opt/homebrew/bin/kafka-server-start /opt/homebrew/etc/kafka/server1.properties
 /opt/homebrew/bin/kafka-server-start /opt/homebrew/etc/kafka/server2.properties
