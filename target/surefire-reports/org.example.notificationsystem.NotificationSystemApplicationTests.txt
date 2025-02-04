@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: org.example.notificationsystem.NotificationSystemApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.863 s - in org.example.notificationsystem.NotificationSystemApplicationTests
