@@ -1,6 +1,7 @@
 package org.example.notificationsystem.config;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,20 +32,19 @@ public class KafkaConsumerConfig {
     private String groupId;
 
     @Bean("NotificationConsumerFactory")
-    public ConsumerFactory<String, String> createOrderConsumerFactory() {
+    public ConsumerFactory<Long, Long> createOrderConsumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
 
-        return new DefaultKafkaConsumerFactory<>(props,new StringDeserializer(),
-                new JsonDeserializer<>(String.class));
+        return new DefaultKafkaConsumerFactory<>(props);
     }
 
     @Bean("NotificationContainerFactory")
-    public ConcurrentKafkaListenerContainerFactory<String, String> createOrderKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+    public ConcurrentKafkaListenerContainerFactory<Long, Long> createOrderKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<Long, Long> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(createOrderConsumerFactory());
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);

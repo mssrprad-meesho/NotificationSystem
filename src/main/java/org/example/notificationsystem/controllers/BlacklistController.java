@@ -46,14 +46,18 @@ public class BlacklistController {
     public ResponseEntity<?> addNumbersToBlacklist(@Valid @RequestBody BlackListRequest blackListRequest) {
         logger.info("POST /v1/blacklist called with request: {}", blackListRequest);
         try {
-            this.blacklistServiceImpl.addNumbersToBlacklist(blackListRequest.getPhoneNumbers().toArray(new String[0]));
-            logger.info("Successfully blacklisted {} numbers", blackListRequest.getPhoneNumbers().size());
-            return ResponseEntity.ok(
-                    BlackListNumbersResponse
-                            .builder()
-                            .data("Successfully Blacklisted")
-                            .build()
-            );
+            boolean result = this.blacklistServiceImpl.addNumbersToBlacklist(blackListRequest.getPhoneNumbers().toArray(new String[0]));
+            if (result) {
+                logger.info("Successfully blacklisted {} numbers", blackListRequest.getPhoneNumbers().size());
+                return ResponseEntity.ok(
+                        BlackListNumbersResponse
+                                .builder()
+                                .data("Successfully Blacklisted")
+                                .build()
+                );
+            } else {
+                throw new Exception("Error adding numbers to blacklist");
+            }
         } catch (Exception e) {
             logger.error("Error blacklisting numbers", e);
             return ResponseEntity.status(500).body("Error blacklisting numbers");
@@ -64,14 +68,18 @@ public class BlacklistController {
     public ResponseEntity<?> removeNumbersFromBlacklist(@Valid @RequestBody BlackListRequest blackListRequest) {
         logger.info("DELETE /v1/blacklist called with request: {}", blackListRequest);
         try {
-            this.blacklistServiceImpl.removeNumbersFromBlacklist(blackListRequest.getPhoneNumbers().toArray(new String[0]));
-            logger.info("Successfully whitelisted {} numbers", blackListRequest.getPhoneNumbers().size());
-            return ResponseEntity.ok(
-                    BlackListNumbersResponse
-                            .builder()
-                            .data("Successfully whitelisted")
-                            .build()
-            );
+            boolean res = this.blacklistServiceImpl.removeNumbersFromBlacklist(blackListRequest.getPhoneNumbers().toArray(new String[0]));
+            if (res) {
+                logger.info("Successfully whitelisted {} numbers", blackListRequest.getPhoneNumbers().size());
+                return ResponseEntity.ok(
+                        BlackListNumbersResponse
+                                .builder()
+                                .data("Successfully whitelisted")
+                                .build()
+                );
+            } else {
+                throw new Exception("Error removing numbers from blacklist");
+            }
         } catch (Exception e) {
             logger.error("Error removing numbers from blacklist", e);
             return ResponseEntity.status(500).body("Error removing numbers from blacklist");

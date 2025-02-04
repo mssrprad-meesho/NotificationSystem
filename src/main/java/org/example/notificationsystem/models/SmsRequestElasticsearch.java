@@ -1,7 +1,6 @@
 package org.example.notificationsystem.models;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.example.notificationsystem.utils.NotificationSystemUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
@@ -15,6 +14,9 @@ import java.util.Date;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Document(indexName = "sms_request", shards = 1, replicas = 0, refreshInterval = "-1")
 public class SmsRequestElasticsearch {
     @Id

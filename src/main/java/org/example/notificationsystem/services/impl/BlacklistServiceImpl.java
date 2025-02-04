@@ -55,20 +55,30 @@ public class BlacklistServiceImpl implements BlacklistService {
     }
 
     @Transactional
-    public void addNumbersToBlacklist(String[] numbers) {
+    public boolean addNumbersToBlacklist(String[] numbers) {
         logger.info("Adding numbers to blacklist: {}", numbers);
 
-        this.redisTemplate.opsForSet().add(RedisConstants.blacklisted_key, numbers);
-
-        logger.info("Successfully added {} numbers to blacklist", numbers.length);
+        Long res = this.redisTemplate.opsForSet().add(RedisConstants.blacklisted_key, numbers);
+        if (res != null) {
+            logger.info("Successfully added {} numbers to blacklist", numbers.length);
+            return true;
+        } else {
+            logger.info("Failed to add {} numbers to blacklist", numbers.length);
+            return false;
+        }
     }
 
     @Transactional
-    public void removeNumbersFromBlacklist(String[] numbers) {
+    public boolean removeNumbersFromBlacklist(String[] numbers) {
         logger.info("Removing numbers to blacklist: {}", numbers);
 
-        this.redisTemplate.opsForSet().remove(RedisConstants.blacklisted_key, numbers);
-
-        logger.info("Successfully removed {} numbers to blacklist", numbers.length);
+        Long res = this.redisTemplate.opsForSet().remove(RedisConstants.blacklisted_key, numbers);
+        if (res != null) {
+            logger.info("Successfully removed {} numbers to blacklist", numbers.length);
+            return true;
+        } else {
+            logger.info("Failed to remove {} numbers to blacklist", numbers.length);
+            return false;
+        }
     }
 }

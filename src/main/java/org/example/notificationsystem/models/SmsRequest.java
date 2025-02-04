@@ -1,7 +1,8 @@
 package org.example.notificationsystem.models;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import org.example.notificationsystem.constants.FailureCodeConstants;
+import org.example.notificationsystem.constants.StatusConstants;
 import org.example.notificationsystem.utils.NotificationSystemUtils;
 
 import javax.persistence.*;
@@ -12,6 +13,9 @@ import java.util.Date;
 @Table(name = "sms_request")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class SmsRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -39,6 +43,9 @@ public class SmsRequest {
     protected void onCreate() {
         createdAt = NotificationSystemUtils.getNowAsDateIST();
         updatedAt = NotificationSystemUtils.getNowAsDateIST();
+        status = StatusConstants.IN_PROGRESS.ordinal();
+        failureCode = FailureCodeConstants.IN_PROGRESS.ordinal();
+        failureComments = "";
     }
 
     @PreUpdate

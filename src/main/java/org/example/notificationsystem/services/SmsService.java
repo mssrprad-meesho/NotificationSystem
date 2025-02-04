@@ -1,5 +1,7 @@
 package org.example.notificationsystem.services;
 
+import org.example.notificationsystem.constants.FailureCodeConstants;
+import org.example.notificationsystem.constants.StatusConstants;
 import org.example.notificationsystem.models.SmsRequest;
 import org.example.notificationsystem.models.SmsRequestElasticsearch;
 
@@ -16,8 +18,8 @@ public interface SmsService {
     List<SmsRequest> getFailedSmsRequests();
     List<SmsRequest> getAllSmsRequests();
 
-    Optional<String> getPhoneNumber(Long smsRequestId);
-    void setStatus(Long smsRequestId, Integer smsStatus);
+    Optional<SmsRequest> setStatus(Long smsRequestId, StatusConstants smsStatus);
+    Optional<SmsRequest> setFailureCode(Long smsRequestId, FailureCodeConstants smsFailureCode);
 
     List<SmsRequestElasticsearch> getAllSmsRequestsElasticsearch();
     List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromToPageSize(Date from, Date to, int page, int size);

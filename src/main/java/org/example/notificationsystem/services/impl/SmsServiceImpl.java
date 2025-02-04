@@ -1,5 +1,6 @@
 package org.example.notificationsystem.services.impl;
 
+import org.example.notificationsystem.constants.FailureCodeConstants;
 import org.example.notificationsystem.constants.StatusConstants;
 import org.example.notificationsystem.kafka.Producer;
 import org.example.notificationsystem.models.SmsRequest;
@@ -13,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
@@ -62,21 +62,13 @@ public class SmsServiceImpl implements SmsService {
         }
 
         // Send Kafka Message
-        boolean success = producer.publishSync(smsRequest.getId().toString());
+        boolean success = producer.publishSync(smsRequest.getId());
         if (success) {
             logger.info("Kafka message sent for SMS request ID {}", smsRequest.getId());
         } else {
             logger.error("Failed to send Kafka message for SMS request ID {}", smsRequest.getId());
         }
-
         return smsRequest;
-    }
-
-    public List<SmsRequest> getAllSmsRequests() {
-        logger.info("Fetching all SMS requests from MySQL");
-        List<SmsRequest> smsRequests = smsRequestRepository.findAll();
-        logger.info("Fetched {} SMS requests from MySQL", smsRequests.size());
-        return smsRequests;
     }
 
     public List<SmsRequestElasticsearch> getAllSmsRequestsElasticsearch() {
@@ -113,6 +105,13 @@ public class SmsServiceImpl implements SmsService {
         return smsRequestRepository.findById(Id);
     }
 
+    public List<SmsRequest> getAllSmsRequests() {
+        logger.info("Fetching all SMS requests from MySQL");
+        List<SmsRequest> smsRequests = smsRequestRepository.findAll();
+        logger.info("Fetched {} SMS requests from MySQL", smsRequests.size());
+        return smsRequests;
+    }
+
     public List<SmsRequest> getFinishedSmsRequests() {
         logger.info("Fetching finished SMS requests");
         return smsRequestRepository.findByStatus(StatusConstants.FINISHED.ordinal());
@@ -128,22 +127,33 @@ public class SmsServiceImpl implements SmsService {
         return smsRequestRepository.findByStatus(StatusConstants.FAILED.ordinal());
     }
 
-    public Optional<String> getPhoneNumber(Long smsRequestId) {
-        logger.info("Fetching phone number for SMS request ID: {}", smsRequestId);
-        Optional<SmsRequest> smsRequest = smsRequestRepository.findById(smsRequestId);
-        return smsRequest.map(SmsRequest::getPhoneNumber);
-    }
-
     @Transactional
-    public void setStatus(Long smsRequestId, Integer smsStatus) {
+    public Optional<SmsRequest> setStatus(Long smsRequestId, StatusConstants smsStatus) {
         logger.info("Updating status for SMS request ID: {} to status: {}", smsRequestId, smsStatus);
-        SmsRequest smsRequest = smsRequestRepository.findById(smsRequestId).orElse(null);
-        if (smsRequest != null) {
-            smsRequest.setStatus(smsStatus);
+        Optional<SmsRequest> optSmsRequest = smsRequestRepository.findById(smsRequestId);
+        if (optSmsRequest.isPresent()) {
+            SmsRequest smsRequest = optSmsRequest.get();
+            smsRequest.setStatus(smsStatus.ordinal());
             smsRequestRepository.saveAndFlush(smsRequest);
             logger.info("Successfully updated status for SMS request ID: {} to {}", smsRequestId, smsStatus);
         } else {
             logger.error("SMS request ID: {} not found, status update failed", smsRequestId);
         }
+        return optSmsRequest;
+    }
+
+    @Transactional
+    public Optional<SmsRequest> setFailureCode(Long smsRequestId, FailureCodeConstants smsFailureCode) {
+        logger.info("Setting failure code for SMS request ID: {} to status: {}", smsRequestId, smsFailureCode);
+        Optional<SmsRequest> optSmsRequest = smsRequestRepository.findById(smsRequestId);
+        if(optSmsRequest.isPresent()) {
+            SmsRequest smsRequest = optSmsRequest.get();
+            smsRequest.setFailureCode(smsFailureCode.ordinal());
+            smsRequestRepository.saveAndFlush(smsRequest);
+            logger.info("Successfully set failure code for SMS request ID: {} to {}", smsRequestId, smsFailureCode);
+        } else {
+            logger.error("SMS request ID: {} not found, failure code update failed", smsRequestId);
+        }
+        return optSmsRequest;
     }
 }

@@ -17,22 +17,22 @@ public class Producer {
 
     private static final Logger logger = LoggerFactory.getLogger(Producer.class);
 
-    private final KafkaProducer<String, String> producer;
+    private final KafkaProducer<Long, Long> producer;
     private final String topicName;
 
     @Autowired
-    public Producer(KafkaProducer<String, String> producer,
+    public Producer(KafkaProducer<Long, Long> producer,
                     @Value("${spring.kafka.topic_name}") String topicName) {
         this.producer = producer;
         this.topicName = topicName;
     }
 
-    public boolean publishSync(String smsRequestId) {
+    public boolean publishSync(Long smsRequestId) {
         logger.info("Attempting to send SMS request ID: {} to Kafka topic: {}", smsRequestId, topicName);
 
-        String key = smsRequestId;
-        String value = smsRequestId;
-        ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topicName, key, value);
+        Long key = smsRequestId;
+        Long value = smsRequestId;
+        ProducerRecord<Long, Long> producerRecord = new ProducerRecord<>(topicName, key, value);
 
         RecordMetadata recordMetadata;
         try {
