@@ -1,8 +1,0 @@
--------------------------------------------------------------------------------
-Test set: org.example.notificationsystem.BlacklistServiceImplTest
--------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.1 s <<< FAILURE! - in org.example.notificationsystem.BlacklistServiceImplTest
-addNumbersToBlacklist  Time elapsed: 0.1 s  <<< ERROR!
-java.lang.NullPointerException: Cannot invoke "org.springframework.data.redis.core.SetOperations.add(Object, Object[])" because the return value of "org.springframework.data.redis.core.RedisTemplate.opsForSet()" is null
-	at org.example.notificationsystem.BlacklistServiceImplTest.addNumbersToBlacklist(BlacklistServiceImplTest.java:52)
-
