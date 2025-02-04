@@ -10,7 +10,7 @@ import java.util.Objects;
 
 @SpringBootApplication
 public class NotificationSystemApplication {
-
+    // Entrypoint
     public static void main(String[] args) {
         SpringApplication.run(NotificationSystemApplication.class, args);
     }
