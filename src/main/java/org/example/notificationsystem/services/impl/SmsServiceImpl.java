@@ -49,12 +49,12 @@ public class SmsServiceImpl implements SmsService {
         smsRequest.setCreatedAt(NotificationSystemUtils.getNowAsDateIST());
         smsRequest.setUpdatedAt(NotificationSystemUtils.getNowAsDateIST());
 
-        smsRequestRepository.saveAndFlush(smsRequest);
+        SmsRequest persistedSmsRequest = smsRequestRepository.saveAndFlush(smsRequest);
         logger.info("SMS request for number {} saved to MySQL with status {}", number, StatusConstants.IN_PROGRESS.name());
 
         // Save into Elasticsearch
         try {
-            SmsRequestElasticsearch smsRequestElasticsearch = NotificationSystemUtils.getSmsRequestElasticsearchFromSmsRequest(smsRequest);
+            SmsRequestElasticsearch smsRequestElasticsearch = NotificationSystemUtils.getSmsRequestElasticsearchFromSmsRequest(persistedSmsRequest);
             smsRequestElasticsearchRepository.save(smsRequestElasticsearch);
             logger.info("SMS request for number {} saved to Elasticsearch", number);
         } catch (Exception e) {
@@ -62,13 +62,13 @@ public class SmsServiceImpl implements SmsService {
         }
 
         // Send Kafka Message
-        boolean success = producer.publishSync(smsRequest.getId());
+        boolean success = producer.publishSync(persistedSmsRequest.getId());
         if (success) {
-            logger.info("Kafka message sent for SMS request ID {}", smsRequest.getId());
+            logger.info("Kafka message sent for SMS request ID {}", persistedSmsRequest.getId());
         } else {
-            logger.error("Failed to send Kafka message for SMS request ID {}", smsRequest.getId());
+            logger.error("Failed to send Kafka message for SMS request ID {}", persistedSmsRequest.getId());
         }
-        return smsRequest;
+        return persistedSmsRequest;
     }
 
     public List<SmsRequestElasticsearch> getAllSmsRequestsElasticsearch() {

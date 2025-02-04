@@ -55,12 +55,12 @@ class SmsServiceImplTest {
     @Test
     void createSmsRequest() {
         // Mock
-        Mockito.when(smsRequestRepository.saveAndFlush(any())).thenReturn(SmsRequest.builder().id(1L).build());
-//        Mockito.lenient().when(smsRequestElasticsearchRepository.save(
-//                any(SmsRequestElasticsearch.class)
-//        )).thenReturn(
-//                NotificationSystemUtils.getSmsRequestElasticsearchFromSmsRequest(smsRequests.get(0))
-//        );
+        Mockito.when(smsRequestRepository.saveAndFlush(any())).thenReturn(smsRequests.get(0));
+        Mockito.when(smsRequestElasticsearchRepository.save(
+                any(SmsRequestElasticsearch.class)
+        )).thenReturn(
+                NotificationSystemUtils.getSmsRequestElasticsearchFromSmsRequest(smsRequests.get(0))
+        );
         Mockito.when(producer.publishSync(any())).thenReturn(true);
 
         SmsRequest smsRequest = smsService.createSmsRequest(smsRequests.get(0).getPhoneNumber(), smsRequests.get(0).getMessage());

@@ -97,7 +97,6 @@ public class NotificationSystemUtils {
                 logger.error("Request Failed. Received non 200 Response Code: {}", responseCode);
                 return ThirdPartyApiResponseCode.API_ERROR;
             }
-
         } catch (MalformedURLException e) {
             logger.error("Error building URL. Malformed URL.", e);
             return ThirdPartyApiResponseCode.MALFORMED_URL;
