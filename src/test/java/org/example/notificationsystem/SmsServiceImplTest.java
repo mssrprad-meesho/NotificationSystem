@@ -113,7 +113,7 @@ class SmsServiceImplTest {
         String substr = "";
 
         // Mock
-        Mockito.when(smsRequestElasticsearchRepository.findByMessageContainsIgnoreCaseAndCreatedAtIsBetween(substr, from, to, PageRequest.of(page, size)))
+        Mockito.when(smsRequestElasticsearchRepository.findByMessageMatchesRegexIgnoreCaseAndCreatedAtIsBetween(substr, from, to, PageRequest.of(page, size)))
                 .thenReturn(smsRequestsElasticsearch);
 
         List<SmsRequestElasticsearch> result = smsService.getAllSmsRequestsElasticSearchContainingFromToPageSize(substr, from, to, page, size);
@@ -127,7 +127,7 @@ class SmsServiceImplTest {
         String substr = "";
 
         // Mock
-        Mockito.when(smsRequestElasticsearchRepository.findByMessageContainsIgnoreCaseAndCreatedAtIsBetween(substr, from, to))
+        Mockito.when(smsRequestElasticsearchRepository.findByMessageMatchesRegexIgnoreCaseAndCreatedAtIsBetween(substr, from, to))
                 .thenReturn(smsRequestsElasticsearch);
 
         List<SmsRequestElasticsearch> result = smsService.getAllSmsRequestsElasticSearchContainingFromTo(substr, from, to);

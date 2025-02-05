@@ -129,8 +129,9 @@ public class SmsController {
             Date effectiveStartTime = query.getStartTime() != null ? parseIstToUtcDate(query.getStartTime()) : Date.from(Instant.EPOCH);
             Date effectiveEndTime = query.getEndTime() != null ? parseIstToUtcDate(query.getEndTime()) : parseIstToUtcDate(MAX_DATE);
             boolean hasPhoneNumber = query.getPhoneNumber() != null;
+            String message = query.getMessageContaining() != null ? "\"" + query.getMessageContaining() + "\"" : "*";
 
-            logger.info("effectiveStartTime: {}, effectiveEndTime: {}", effectiveStartTime, effectiveEndTime);
+            logger.info("effectiveStartTime: {}, effectiveEndTime: {}, message containing: {}", effectiveStartTime, effectiveEndTime, query.getMessageContaining());
             List<SmsRequestElasticsearch> result;
 
             if (isPageable) {
