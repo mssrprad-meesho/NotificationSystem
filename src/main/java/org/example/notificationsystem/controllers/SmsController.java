@@ -129,9 +129,10 @@ public class SmsController {
             Date effectiveStartTime = query.getStartTime() != null ? parseIstToUtcDate(query.getStartTime()) : Date.from(Instant.EPOCH);
             Date effectiveEndTime = query.getEndTime() != null ? parseIstToUtcDate(query.getEndTime()) : parseIstToUtcDate(MAX_DATE);
             boolean hasPhoneNumber = query.getPhoneNumber() != null;
-            String message = query.getMessageContaining() != null ? "\"" + query.getMessageContaining() + "\"" : "*";
+            String message = query.getMessageContaining() != null ? "\"" + query.getMessageContaining() + "\"" : "";
+            if (message.isEmpty()) message = "\".*\"";
 
-            logger.info("effectiveStartTime: {}, effectiveEndTime: {}, message containing: {}", effectiveStartTime, effectiveEndTime, query.getMessageContaining());
+            logger.info("effectiveStartTime: {}, effectiveEndTime: {}, message containing: {}", effectiveStartTime, effectiveEndTime, message);
             List<SmsRequestElasticsearch> result;
 
             if (isPageable) {
@@ -139,14 +140,14 @@ public class SmsController {
                     if(hasPhoneNumber){
                         result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromToPageSizeAndPhoneNumber(
                                 query.getPhoneNumber(),
-                                query.getMessageContaining(),
+                                message,
                                 effectiveStartTime,
                                 effectiveEndTime,
                                 query.getPage(),
                                 query.getSize());
                     } else {
                         result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromToPageSize(
-                                query.getMessageContaining(),
+                                message,
                                 effectiveStartTime,
                                 effectiveEndTime,
                                 query.getPage(),
@@ -175,12 +176,12 @@ public class SmsController {
                     if(hasPhoneNumber) {
                         result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(
                                 query.getPhoneNumber(),
-                                query.getMessageContaining(),
+                                message,
                                 effectiveStartTime,
                                 effectiveEndTime);
                     } else {
                     result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromTo(
-                            query.getMessageContaining(),
+                            message,
                             effectiveStartTime,
                             effectiveEndTime);
                     }
