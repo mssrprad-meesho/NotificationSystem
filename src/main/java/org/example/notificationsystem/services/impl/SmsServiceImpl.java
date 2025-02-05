@@ -22,7 +22,7 @@ import java.util.Optional;
 
 
 @Service
-public class SmsServiceImpl implements SmsService {
+public class  SmsServiceImpl implements SmsService {
 
     private static final Logger logger = LoggerFactory.getLogger(SmsServiceImpl.class);
 
@@ -36,6 +36,7 @@ public class SmsServiceImpl implements SmsService {
         this.smsRequestElasticsearchRepository = smsRequestElasticsearchRepository;
         this.producer = producer;
     }
+
 
     @Transactional
     public SmsRequest createSmsRequest(String number, String message) {
@@ -59,6 +60,7 @@ public class SmsServiceImpl implements SmsService {
             logger.info("SMS request for number {} saved to Elasticsearch", number);
         } catch (Exception e) {
             logger.error("Failed to save SMS request to Elasticsearch for number {}: {}", number, e.getMessage());
+            throw e;
         }
 
         // Send Kafka Message
@@ -80,6 +82,8 @@ public class SmsServiceImpl implements SmsService {
         return smsRequestElasticsearchList;
     }
 
+    // Elastic Search queries
+
     public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromToPageSize(Date from, Date to, int page, int size) {
         logger.info("Fetching SMS requests from Elasticsearch between {} and {} with pagination (page: {}, size: {})", from, to, page, size);
         return smsRequestElasticsearchRepository.findByCreatedAtIsBetween(from, to, PageRequest.of(page, size));
@@ -99,6 +103,29 @@ public class SmsServiceImpl implements SmsService {
         logger.info("Fetching SMS requests containing '{}' from Elasticsearch between {} and {}", substr, from, to);
         return smsRequestElasticsearchRepository.findByMessageContainsIgnoreCaseAndCreatedAtIsBetween(substr, from, to);
     }
+
+    // Elastic Search Queries but with phone number also
+    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromToPageSizeAndPhoneNumber(String number, Date from, Date to, int page, int size) {
+        logger.info("Fetching SMS requests from Elasticsearch having Phone Number {} between {} and {} with pagination (page: {}, size: {})", number, from, to, page, size);
+        return smsRequestElasticsearchRepository.findByPhoneNumberAndCreatedAtIsBetween(number, from, to, PageRequest.of(page, size));
+    }
+
+    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromToAndPhoneNumber(String number, Date from, Date to) {
+        logger.info("Fetching SMS requests from Elasticsearch having Phone Number {} between {} and {}", number, from, to);
+        return smsRequestElasticsearchRepository.findByPhoneNumberAndCreatedAtIsBetween(number, from, to);
+    }
+
+    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToPageSizeAndPhoneNumber(String number, String substr, Date from, Date to, int page, int size) {
+        logger.info("Fetching SMS requests having Phone Number {} containing '{}' from Elasticsearch between {} and {} with pagination (page: {}, size: {})", number, substr, from, to, page, size);
+        return smsRequestElasticsearchRepository.findByPhoneNumberAndMessageContainsIgnoreCaseAndCreatedAtIsBetween(number, substr, from, to, PageRequest.of(page, size));
+    }
+
+    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(String number, String substr, Date from, Date to) {
+        logger.info("Fetching SMS requests having Phone Number {} number, containing '{}' from Elasticsearch between {} and {}", number, substr, from, to);
+        return smsRequestElasticsearchRepository.findByPhoneNumberAndMessageContainsIgnoreCaseAndCreatedAtIsBetween(number, substr, from, to);
+    }
+
+    // SmsRequest Queries
 
     public Optional<SmsRequest> getSmsRequest(Long Id) {
         logger.info("Fetching SMS request by ID: {}", Id);

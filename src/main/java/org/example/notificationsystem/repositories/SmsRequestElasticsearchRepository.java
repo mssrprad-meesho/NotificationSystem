@@ -10,13 +10,14 @@ import java.util.List;
 
 @Repository
 public interface SmsRequestElasticsearchRepository extends ElasticsearchRepository<SmsRequestElasticsearch, String> {
+
+    List<SmsRequestElasticsearch> findByPhoneNumberAndCreatedAtIsBetween(String phoneNumber, Date from, Date to);
+    List<SmsRequestElasticsearch> findByPhoneNumberAndCreatedAtIsBetween(String phoneNumber, Date from, Date to, Pageable pageable);
+    List<SmsRequestElasticsearch> findByPhoneNumberAndMessageContainsIgnoreCaseAndCreatedAtIsBetween(String phoneNumber, String message, Date from, Date to);
+    List<SmsRequestElasticsearch> findByPhoneNumberAndMessageContainsIgnoreCaseAndCreatedAtIsBetween(String phoneNumber, String message, Date from, Date to, Pageable pageable);
+
     List<SmsRequestElasticsearch> findByCreatedAtIsBetween(Date createdAtAfter, Date createdAtBefore, Pageable pageable);
-
     List<SmsRequestElasticsearch> findByCreatedAtIsBetween(Date createdAtAfter, Date createdAtBefore);
-
-    List<SmsRequestElasticsearch> getSmsRequestElasticsearchByMessageContainingIgnoreCase(String message);
-
     List<SmsRequestElasticsearch> findByMessageContainsIgnoreCaseAndCreatedAtIsBetween(String message, Date createdAtAfter, Date createdAtBefore, Pageable pageable);
-
     List<SmsRequestElasticsearch> findByMessageContainsIgnoreCaseAndCreatedAtIsBetween(String message, Date createdAtAfter, Date createdAtBefore);
 }

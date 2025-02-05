@@ -21,10 +21,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 
 import static org.example.notificationsystem.constants.Time.INDIA_ZONE_ID;
+import static org.example.notificationsystem.constants.Time.UTC_ZONE_ID;
+import static org.example.notificationsystem.constants.Time.DATE_TIME_FORMATTER;
 
 public class NotificationSystemUtils {
 
@@ -128,5 +132,17 @@ public class NotificationSystemUtils {
 
     public static Date getNowAsDateIST() {
         return Date.from(Instant.now().atZone(INDIA_ZONE_ID).toInstant());
+    }
+
+    public static Date parseIstToUtcDate(String dateString) {
+        // dateString must be "^(\\d{2})-(\\d{2})-(\\d{4}) (\\d{2}):(\\d{2}):(\\d{2})$\n"
+        logger.info("Parsing ISO 8601 date: {}", dateString);
+        // Parse the input (IST) string into a LocalDateTime
+        LocalDateTime localDateTime = LocalDateTime.parse(dateString, DATE_TIME_FORMATTER);
+
+        // Convert the LocalDateTime to Date
+        ZonedDateTime istZonedDateTime = localDateTime.atZone(INDIA_ZONE_ID);
+        ZonedDateTime utcZonedDateTime = istZonedDateTime.withZoneSameInstant(UTC_ZONE_ID);
+        return Date.from(utcZonedDateTime.toInstant());
     }
 }

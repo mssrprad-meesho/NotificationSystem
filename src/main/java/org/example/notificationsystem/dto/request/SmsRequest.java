@@ -11,7 +11,7 @@ import javax.validation.constraints.Size;
 @Data
 @Builder
 public class SmsRequest {
-    @NotNull
+    @NotBlank
     @Pattern(regexp = "^\\+[1-9]\\d{10,14}$")
     private String phoneNumber;
 
