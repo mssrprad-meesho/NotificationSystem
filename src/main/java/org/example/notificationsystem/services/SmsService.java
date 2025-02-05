@@ -21,10 +21,5 @@ public interface SmsService {
     Optional<SmsRequest> setStatus(Long smsRequestId, StatusConstants smsStatus);
     Optional<SmsRequest> setFailureCode(Long smsRequestId, FailureCodeConstants smsFailureCode);
 
-    List<SmsRequestElasticsearch> getAllSmsRequestsElasticsearch();
-    List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromToPageSize(Date from, Date to, int page, int size);
-    List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromTo(Date from, Date to);
-    List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToPageSize(String substr, Date from, Date to, int page, int size);
-    List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromTo(String substr, Date from, Date to);
-
+    List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(Date from, Date to, Optional<String> number, List<String> substr);
 }

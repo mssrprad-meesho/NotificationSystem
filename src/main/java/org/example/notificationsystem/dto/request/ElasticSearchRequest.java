@@ -3,6 +3,8 @@ package org.example.notificationsystem.dto.request;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 import javax.validation.constraints.Pattern;
 
 @Data
@@ -17,7 +19,8 @@ public class ElasticSearchRequest {
 
     private Integer page;
     private Integer size;
-    private String messageContaining;
+
+    private List<String> messageContaining;
 
     @Pattern(regexp = "^\\+[1-9]\\d{10,14}$")
     private String phoneNumber;

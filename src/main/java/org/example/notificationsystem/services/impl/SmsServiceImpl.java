@@ -8,11 +8,11 @@ import org.example.notificationsystem.models.SmsRequestElasticsearch;
 import org.example.notificationsystem.repositories.SmsRequestElasticsearchRepository;
 import org.example.notificationsystem.repositories.SmsRequestRepository;
 import org.example.notificationsystem.services.SmsService;
+import org.example.notificationsystem.repositories.ElasticSearchRepository;
 import org.example.notificationsystem.utils.NotificationSystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
@@ -29,12 +29,14 @@ public class  SmsServiceImpl implements SmsService {
     private final SmsRequestRepository smsRequestRepository;
     private final SmsRequestElasticsearchRepository smsRequestElasticsearchRepository;
     private final Producer producer;
+    private final ElasticSearchRepository elasticSearchRepository;
 
     @Autowired
-    public SmsServiceImpl(SmsRequestRepository smsRequestRepository, SmsRequestElasticsearchRepository smsRequestElasticsearchRepository, Producer producer) {
+    public SmsServiceImpl(SmsRequestRepository smsRequestRepository, SmsRequestElasticsearchRepository smsRequestElasticsearchRepository, Producer producer, ElasticSearchRepository elasticSearchRepository) {
         this.smsRequestRepository = smsRequestRepository;
         this.smsRequestElasticsearchRepository = smsRequestElasticsearchRepository;
         this.producer = producer;
+        this.elasticSearchRepository = elasticSearchRepository;
     }
 
 
@@ -83,46 +85,14 @@ public class  SmsServiceImpl implements SmsService {
     }
 
     // Elastic Search queries
-
-    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromToPageSize(Date from, Date to, int page, int size) {
-        logger.info("Fetching SMS requests from Elasticsearch between {} and {} with pagination (page: {}, size: {})", from, to, page, size);
-        return smsRequestElasticsearchRepository.findByCreatedAtIsBetween(from, to, PageRequest.of(page, size));
+    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(Date from, Date to, Optional<String> number, List<String> terms) {
+        logger.info("Fetching SMS requests from Elasticsearch");
+        return elasticSearchRepository.getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequest(from, to, number, terms);
     }
 
-    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromTo(Date from, Date to) {
-        logger.info("Fetching SMS requests from Elasticsearch between {} and {}", from, to);
-        return smsRequestElasticsearchRepository.findByCreatedAtIsBetween(from, to);
-    }
-
-    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToPageSize(String substr, Date from, Date to, int page, int size) {
-        logger.info("Fetching SMS requests containing '{}' from Elasticsearch between {} and {} with pagination (page: {}, size: {})", substr, from, to, page, size);
-        return smsRequestElasticsearchRepository.findByMessageMatchesRegexIgnoreCaseAndCreatedAtIsBetween(substr, from, to, PageRequest.of(page, size));
-    }
-
-    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromTo(String substr, Date from, Date to) {
-        logger.info("Fetching SMS requests containing '{}' from Elasticsearch between {} and {}", substr, from, to);
-        return smsRequestElasticsearchRepository.findByMessageMatchesRegexIgnoreCaseAndCreatedAtIsBetween(substr, from, to);
-    }
-
-    // Elastic Search Queries but with phone number also
-    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromToPageSizeAndPhoneNumber(String number, Date from, Date to, int page, int size) {
-        logger.info("Fetching SMS requests from Elasticsearch having Phone Number {} between {} and {} with pagination (page: {}, size: {})", number, from, to, page, size);
-        return smsRequestElasticsearchRepository.findByPhoneNumberAndCreatedAtIsBetween(number, from, to, PageRequest.of(page, size));
-    }
-
-    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchFromToAndPhoneNumber(String number, Date from, Date to) {
-        logger.info("Fetching SMS requests from Elasticsearch having Phone Number {} between {} and {}", number, from, to);
-        return smsRequestElasticsearchRepository.findByPhoneNumberAndCreatedAtIsBetween(number, from, to);
-    }
-
-    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToPageSizeAndPhoneNumber(String number, String substr, Date from, Date to, int page, int size) {
-        logger.info("Fetching SMS requests having Phone Number {} containing '{}' from Elasticsearch between {} and {} with pagination (page: {}, size: {})", number, substr, from, to, page, size);
-        return smsRequestElasticsearchRepository.findByPhoneNumberAndMessageMatchesRegexIgnoreCaseAndCreatedAtIsBetween(number, substr, from, to, PageRequest.of(page, size));
-    }
-
-    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(String number, String substr, Date from, Date to) {
-        logger.info("Fetching SMS requests having Phone Number {} number, containing '{}' from Elasticsearch between {} and {}", number, substr, from, to);
-        return smsRequestElasticsearchRepository.findByPhoneNumberAndMessageMatchesRegexIgnoreCaseAndCreatedAtIsBetween(number, substr, from, to);
+    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumberPageSize(Date from, Date to, Optional<String> number, List<String> terms, int page, int size) {
+        logger.info("Fetching SMS requests from Elasticsearch");
+        return elasticSearchRepository.getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequestPageSize(from, to, number, terms, page, size);
     }
 
     // SmsRequest Queries

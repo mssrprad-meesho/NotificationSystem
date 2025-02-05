@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.ValidationException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -129,74 +130,26 @@ public class SmsController {
             Date effectiveStartTime = query.getStartTime() != null ? parseIstToUtcDate(query.getStartTime()) : Date.from(Instant.EPOCH);
             Date effectiveEndTime = query.getEndTime() != null ? parseIstToUtcDate(query.getEndTime()) : parseIstToUtcDate(MAX_DATE);
             boolean hasPhoneNumber = query.getPhoneNumber() != null;
-            String message = query.getMessageContaining() != null ? "\"" + query.getMessageContaining() + "\"" : "";
-            if (message.isEmpty()) message = "\".*\"";
+            List<String> message = query.getMessageContaining() != null ? query.getMessageContaining(): new ArrayList<String>();
 
             logger.info("effectiveStartTime: {}, effectiveEndTime: {}, message containing: {}", effectiveStartTime, effectiveEndTime, message);
-            List<SmsRequestElasticsearch> result;
+            List<SmsRequestElasticsearch> result = new ArrayList<>();
 
             if (isPageable) {
-                if (messageContaining) {
-                    if(hasPhoneNumber){
-                        result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromToPageSizeAndPhoneNumber(
-                                query.getPhoneNumber(),
-                                message,
-                                effectiveStartTime,
-                                effectiveEndTime,
-                                query.getPage(),
-                                query.getSize());
-                    } else {
-                        result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromToPageSize(
-                                message,
-                                effectiveStartTime,
-                                effectiveEndTime,
-                                query.getPage(),
-                                query.getSize());
-                    }
-
-                } else {
-                    if(hasPhoneNumber) {
-                        result = smsServiceImpl.getAllSmsRequestsElasticSearchFromToPageSizeAndPhoneNumber(
-                                query.getPhoneNumber(),
-                                effectiveStartTime,
-                                effectiveEndTime,
-                                query.getPage(),
-                                query.getSize());
-                    } else {
-                        result = smsServiceImpl.getAllSmsRequestsElasticSearchFromToPageSize(
-                                effectiveStartTime,
-                                effectiveEndTime,
-                                query.getPage(),
-                                query.getSize());
-                    }
-                }
+                result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumberPageSize(
+                        effectiveStartTime,
+                        effectiveEndTime,
+                        (hasPhoneNumber? Optional.of(query.getPhoneNumber()) : Optional.empty()),
+                        message,
+                        query.getPage(),
+                        query.getSize()
+                );
             } else {
-                if (messageContaining) {
-
-                    if(hasPhoneNumber) {
-                        result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(
-                                query.getPhoneNumber(),
-                                message,
-                                effectiveStartTime,
-                                effectiveEndTime);
-                    } else {
-                    result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromTo(
-                            message,
-                            effectiveStartTime,
-                            effectiveEndTime);
-                    }
-                } else {
-                    if(hasPhoneNumber) {
-                        result = smsServiceImpl.getAllSmsRequestsElasticSearchFromToAndPhoneNumber(
-                                query.getPhoneNumber(),
-                                effectiveStartTime,
-                                effectiveEndTime);
-                    } else {
-                        result = smsServiceImpl.getAllSmsRequestsElasticSearchFromTo(
-                                effectiveStartTime,
-                                effectiveEndTime);
-                    }
-                }
+                result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(
+                        effectiveStartTime, effectiveEndTime,
+                        (hasPhoneNumber? Optional.of(query.getPhoneNumber()) : Optional.empty()),
+                        message
+                );
             }
             logger.info("Fetched {} SMS requests from Elasticsearch", result.size());
             return ResponseEntity.ok(

@@ -1,22 +1,30 @@
 package org.example.notificationsystem.controllers;
 
-import org.example.notificationsystem.NotificationSystemApplication;
+import org.example.notificationsystem.models.SmsRequestElasticsearch;
+import org.example.notificationsystem.repositories.ElasticSearchRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 public class HelloController {
     private static final Logger logger = LoggerFactory.getLogger(HelloController.class);
 
+    @Autowired
+    ElasticSearchRepository elasticSearchRepository;
+
     @GetMapping("/")
-    public String index() {
+    public ResponseEntity<List<SmsRequestElasticsearch>> index() {
         logger.info("PINGED Index!");
         logger.debug("Debug level - Hello");
         logger.info("Info level - Hello");
         logger.error("Error level - Hello");
-        return "Notification System is running....";
+        return ResponseEntity.ok(elasticSearchRepository.getAllSmsRequestsElasticsearch());
     }
 
     @GetMapping("/hello")

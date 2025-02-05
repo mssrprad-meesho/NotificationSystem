@@ -23,12 +23,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
-import static org.example.notificationsystem.constants.Time.INDIA_ZONE_ID;
-import static org.example.notificationsystem.constants.Time.UTC_ZONE_ID;
-import static org.example.notificationsystem.constants.Time.DATE_TIME_FORMATTER;
+import static org.example.notificationsystem.constants.Time.*;
 
 public class NotificationSystemUtils {
 
@@ -145,4 +144,14 @@ public class NotificationSystemUtils {
         ZonedDateTime utcZonedDateTime = istZonedDateTime.withZoneSameInstant(UTC_ZONE_ID);
         return Date.from(utcZonedDateTime.toInstant());
     }
+
+    public static String DateToElasticSearchTimestamp(Date date){
+        return ELASTICSEARCH_TIMESTAMP_FORMATTER.format(date.toInstant());
+    }
+
+    public static Date ElasticSearchTimestampToDate(String timestamp){
+        Instant instant = Instant.from(ELASTICSEARCH_TIMESTAMP_FORMATTER.parse(timestamp));
+        return Date.from(instant);
+    }
+
 }
