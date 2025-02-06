@@ -29,12 +29,32 @@ import java.util.List;
 
 import static org.example.notificationsystem.constants.Time.*;
 
-public class NotificationSystemUtils {
+/**
+ * An Utils class to hold some miscellaneous methods used throughout the service.
+ *
+ * <b>Public Methods: </b>
+ * <ul>
+ *   <li><b>boolean isValidPageRequest(ElasticSearchRequest query)</b>: Is the ElasticSearchRequest query a pagination query?</li>
+ *   <li><b>SmsRequestElasticsearch getSmsRequestElasticsearchFromSmsRequest(SmsRequest smsRequest)</b>: Used to create the SmsRequestElasticSearch object from the SmsRequest object for insertion into the index.</li>
+ *   <li><b>ThirdPartyApiResponseCode send2ThirdPartyApi(List<ThirdPartySmsApiRequest> req)</b>: Handles the third party api request and if any error occurred, returns the type of the error.</li>
+ *   <li><b>Date getNowAsDateIST()</b>: The current Time as IST.
+ *   <li><b>Date parseIstToUtcDate(String dateString)</b>: Convert the readable IST strings in ElasticSearchRequest to a Date object which can be used to filter the ElasticSearch query.
+ *   <li><b>String DateToElasticSearchTimestamp(Date date)</b>: Convert a Date to the String representation of the Date as stored in ElasticSearch (basic_date_time).</li>
+ *   <li><b>Date ElasticSearchTimestampToDate(String timestamp)</b>: Convert the String representation of the Date as stored in ElasticSearch to a readable Date object.</li>
+ * </ul>
+ * @author Malladi Pradyumna
+ */
+public final class NotificationSystemUtils {
 
     private static final String thirdPartyApiUrl = "https://notification.free.beeceptor.com/resources/v1/messaging";
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationSystemUtils.class);
 
+    /**
+     * Checks if the given ElasticSearchRequest query is a valid pagination request.
+     * @param query the ElasticSearchRequest to validate
+     * @return true if both page and size are valid, false otherwise
+     */
     public static boolean isValidPageRequest(ElasticSearchRequest query) {
         // Check if both page and size are non-null and valid
         return query.getPage() != null
@@ -43,6 +63,11 @@ public class NotificationSystemUtils {
                 && query.getSize() > 0;
     }
 
+    /**
+     * Converts a SmsRequest to a SmsRequestElasticsearch for indexing.
+     * @param smsRequest the SmsRequest to convert
+     * @return SmsRequestElasticsearch representation of the given SmsRequest
+     */
     public static SmsRequestElasticsearch getSmsRequestElasticsearchFromSmsRequest(SmsRequest smsRequest) {
         SmsRequestElasticsearch smsRequestElasticsearch = new SmsRequestElasticsearch();
         smsRequestElasticsearch.setCreatedAt(smsRequest.getCreatedAt());
@@ -53,6 +78,11 @@ public class NotificationSystemUtils {
         return smsRequestElasticsearch;
     }
 
+    /**
+     * Sends a request to the third party API and returns the corresponding response code.
+     * @param req list of ThirdPartySmsApiRequest objects to send
+     * @return ThirdPartyApiResponseCode indicating the outcome of the API call
+     */
     public static ThirdPartyApiResponseCode send2ThirdPartyApi(List<ThirdPartySmsApiRequest> req) {
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = "";
@@ -112,6 +142,14 @@ public class NotificationSystemUtils {
         }
     }
 
+    /**
+     * Reads the response from the connection and returns it as a StringBuilder.
+     * Handles whether to read from the error stream or input stream based on the responseCode
+     * @param responseCode the HTTP response code
+     * @param connection the HttpURLConnection to read from
+     * @return StringBuilder containing the response
+     * @throws IOException if an I/O error occurs
+     */
     private static StringBuilder getStringBuilder(int responseCode, HttpURLConnection connection) throws IOException {
         BufferedReader br = null;
         if (100 <= responseCode && responseCode <= 399) {
@@ -128,11 +166,19 @@ public class NotificationSystemUtils {
         return response;
     }
 
-
+    /**
+     * Gets the current time as a Date object in IST.
+     * @return current Date in IST
+     */
     public static Date getNowAsDateIST() {
         return Date.from(Instant.now().atZone(INDIA_ZONE_ID).toInstant());
     }
 
+    /**
+     * Parses an IST date string into a UTC Date object.
+     * @param dateString the date string in IST format
+     * @return UTC Date corresponding to the input string
+     */
     public static Date parseIstToUtcDate(String dateString) {
         // dateString must be "^(\\d{2})-(\\d{2})-(\\d{4}) (\\d{2}):(\\d{2}):(\\d{2})$\n"
         logger.info("Parsing ISO 8601 date: {}", dateString);
@@ -145,10 +191,20 @@ public class NotificationSystemUtils {
         return Date.from(utcZonedDateTime.toInstant());
     }
 
+    /**
+     * Converts a Date to an Elasticsearch timestamp string.
+     * @param date the Date to convert
+     * @return timestamp string formatted for Elasticsearch
+     */
     public static String DateToElasticSearchTimestamp(Date date){
         return ELASTICSEARCH_TIMESTAMP_FORMATTER.format(date.toInstant());
     }
 
+    /**
+     * Converts an Elasticsearch timestamp string to a Date object.
+     * @param timestamp the Elasticsearch timestamp string
+     * @return Date object parsed from the timestamp
+     */
     public static Date ElasticSearchTimestampToDate(String timestamp){
         Instant instant = Instant.from(ELASTICSEARCH_TIMESTAMP_FORMATTER.parse(timestamp));
         return Date.from(instant);

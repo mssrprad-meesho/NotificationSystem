@@ -45,4 +45,18 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Error> handleException(Exception ex) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .code("SERVER_ERROR")
+                .message("Some Error Occurred. Either your request is malformed or it's something on our side.")
+                .build();
+
+        Error response = Error.builder()
+                .error(errorResponse)
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
 }

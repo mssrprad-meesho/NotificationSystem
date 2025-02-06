@@ -96,7 +96,6 @@ public class  SmsServiceImpl implements SmsService {
     }
 
     // SmsRequest Queries
-
     public Optional<SmsRequest> getSmsRequest(Long Id) {
         logger.info("Fetching SMS request by ID: {}", Id);
         return smsRequestRepository.findById(Id);

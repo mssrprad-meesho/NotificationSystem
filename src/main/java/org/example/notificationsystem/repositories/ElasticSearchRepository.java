@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.example.notificationsystem.constants.ElasticsearchConstants.indexName;
+import static org.example.notificationsystem.utils.NotificationSystemUtils.ElasticSearchTimestampToDate;
 
 @Repository
 public class ElasticSearchRepository {
