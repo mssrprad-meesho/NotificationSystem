@@ -75,15 +75,6 @@ public class  SmsServiceImpl implements SmsService {
         return persistedSmsRequest;
     }
 
-    public List<SmsRequestElasticsearch> getAllSmsRequestsElasticsearch() {
-        logger.info("Fetching all SMS requests from Elasticsearch");
-        List<SmsRequestElasticsearch> smsRequestElasticsearchList = new ArrayList<>();
-        smsRequestElasticsearchRepository.findAll().forEach(
-                smsRequestElasticsearchList::add);
-        logger.info("Fetched {} SMS requests from Elasticsearch", smsRequestElasticsearchList.size());
-        return smsRequestElasticsearchList;
-    }
-
     // Elastic Search queries
     public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(Date from, Date to, Optional<String> number, List<String> terms) {
         logger.info("Fetching SMS requests from Elasticsearch");

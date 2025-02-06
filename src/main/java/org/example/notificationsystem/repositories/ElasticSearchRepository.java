@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.example.notificationsystem.constants.ElasticsearchConstants.indexName;
-import static org.example.notificationsystem.utils.NotificationSystemUtils.ElasticSearchTimestampToDate;
 
 @Repository
 public class ElasticSearchRepository {
@@ -113,7 +112,7 @@ public class ElasticSearchRepository {
         );
 
         terms.forEach(term ->
-                boolQuery.filter(QueryBuilders.termQuery("message", term))
+                boolQuery.filter(QueryBuilders.matchQuery("message", term))
         );
         return boolQuery;
     }

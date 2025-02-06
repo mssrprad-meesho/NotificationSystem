@@ -15,6 +15,30 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import java.util.Date;
 
+/**
+ * Represents an SMS request entity that maps to the "sms_request" index in ElasticSearch.
+ * <ul>
+ *   <li><b>id</b>: The unique id (primary key of the document) for the SMS request (auto-generated).</li>
+ *   <li><b>smsRequestId</b>: The unique identifier for the SMS request.</li>
+ *   <li><b>phoneNumber</b>: The recipient's phone number, which must be between 4 and 17 characters long.</li>
+ *   <li><b>message</b>: The text content of the SMS message.</li>
+ *   <li><b>createdAt</b>: The timestamp when the SMS request was created.</li>
+ *   <li><b>updatedAt</b>: The timestamp when the SMS request was last updated.</li>
+ * </ul>
+ * <p>
+ * Lifecycle callbacks are used to manage timestamps and default values:
+ * <ul>
+ *   <li>{@link #onCreate()} - Called before the document is persisted. It initializes both the
+ *       {@code createdAt} and {@code updatedAt} fields using the current time.</li>
+ *   <li>{@link #onUpdate()} - Called before the document is updated. It refreshes the {@code updatedAt} timestamp
+ *       to the current time.</li>
+ * </ul>
+ * <p>
+ *
+ * This class is annotated with: {@code @Getter}, {@code @Setter}, {@code @NoArgsConstructor}, {@code @AllArgsConstructor}, {@code @Builder})
+ *
+ * @author Malladi Pradyumna
+ */
 @Getter
 @Setter
 @NoArgsConstructor

@@ -18,28 +18,42 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+/**
+ * Subscribes to a partition (check KafkaConsumerConfig for configuration parameters) and processes the logs received.
+ * */
 @Service("NotificationService")
 public class Consumer {
 
     private static final Logger logger = LoggerFactory.getLogger(Consumer.class);
 
+    /**
+     * The blacklist and sms service are injected through the constructor for interacting with Redis (to check if a number is blacklisted) and
+     * updating the status of the Sms Request in SmsRequest.
+     * */
     private final BlacklistServiceImpl blacklistServiceImpl;
-
     private final SmsServiceImpl smsServiceImpl;
-
 
     public Consumer(BlacklistServiceImpl blacklistServiceImpl, SmsServiceImpl smsServiceImpl) {
         this.blacklistServiceImpl = blacklistServiceImpl;
         this.smsServiceImpl = smsServiceImpl;
     }
 
+    /**
+     * Handle an Sms Request.
+     * */
     @KafkaListener(topics = "${spring.kafka.topic_name}", containerFactory = "NotificationContainerFactory")
     public void consume(ConsumerRecord<Long, Long> record) {
+        /**
+         * Log the receival of the request.
+         * */
         Long smsRequestId = record.value();
         Long key = record.key();
         logger.info("Received record with key: {} and value: {}", key, record.value());
 
         try {
+            /**
+             * Get the Sms Request from MySQL
+             * */
             Optional<org.example.notificationsystem.models.SmsRequest> optionalSmsRequest = this.smsServiceImpl.getSmsRequest(smsRequestId);
 
             if (optionalSmsRequest.isPresent()) {
@@ -47,13 +61,21 @@ public class Consumer {
 
                 logger.info("Found SMS request ID: {} for phone number: {}", smsRequestId, phoneNumber);
 
+                /**
+                 * Check if the number is blacklisted or not.
+                 * */
                 if (blacklistServiceImpl.isNumberBlacklisted(phoneNumber)) {
+                    /**
+                     * If blacklisted, update the state in MySQL.
+                     * */
                     logger.warn("Phone number {} is blacklisted. Marking SMS request ID: {} as FAILED", phoneNumber, smsRequestId);
                     this.smsServiceImpl.setStatus(smsRequestId, StatusConstants.FAILED);
                     this.smsServiceImpl.setFailureCode(smsRequestId, FailureCodeConstants.BLACKLISTED_PHONE_NUMBER);
                 } else {
                     logger.info("Phone number {} is not blacklisted. Proceeding with SMS sending...", phoneNumber);
-
+                    /**
+                     * Otherwise, make a request to the third party API.
+                     * */
                     // Send to third-party API here
                     ThirdPartySmsApiRequest thirdPartySmsApiRequest = ThirdPartySmsApiRequest
                             .builder()
@@ -86,13 +108,23 @@ public class Consumer {
                             .build();
 
                     ThirdPartyApiResponseCode thirdPartyApiResponseCode = NotificationSystemUtils.send2ThirdPartyApi(
-                            new ArrayList<ThirdPartySmsApiRequest>(Arrays.asList(thirdPartySmsApiRequest)
+                            new ArrayList<ThirdPartySmsApiRequest>(
+                                    Arrays.asList(thirdPartySmsApiRequest)
                             )
                     );
-
+                    /**
+                     * Handle all the possible errors that might occur from the third party API request.
+                     * */
                     if(thirdPartyApiResponseCode == ThirdPartyApiResponseCode.SUCCESS){
+                        /**
+                         * If success, update state to indicate so in MySQL.
+                         * */
                         this.smsServiceImpl.setStatus(smsRequestId, StatusConstants.FINISHED);
+                        this.smsServiceImpl.setFailureCode(smsRequestId, FailureCodeConstants.SUCCESS);
                     } else {
+                        /**
+                         * If failure, update state to indicate so in MySQL.
+                         * */
                         this.smsServiceImpl.setStatus(smsRequestId, StatusConstants.FAILED);
 
                         if(thirdPartyApiResponseCode == ThirdPartyApiResponseCode.TIMEOUT){
@@ -113,6 +145,5 @@ public class Consumer {
         } catch (Exception e) {
             logger.error("Error processing SMS request ID: {}. Exception: {}", smsRequestId, e.getMessage());
         }
-        logger.info("Acknowledgment sent for SMS request ID: {}", smsRequestId);
     }
 }

@@ -13,6 +13,19 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Set;
 
+
+/**
+ * The Blacklist Controller handles all the /v1/* endpoints related to the blacklisting functionality.
+ * It handles the following endpoints:
+ * <ul>
+ *     <li><b>GET /v1/blacklist</b>: Get all Blacklisted Phone Numbers</li>
+ *     <li><b>POST /v1/blacklist</b>: Blacklist a list of Phone Numbers</li>
+ *     <li><b>DELETE /v1/blacklist</b>: Whitelist a list of Phone Numbers</li>
+ * </ul>
+ *
+ * @author Malladi Pradyumna
+ * */
+
 @RestController
 public class BlacklistController {
 
@@ -24,6 +37,9 @@ public class BlacklistController {
         this.blacklistServiceImpl = blacklistServiceImpl;
     }
 
+    /**
+     * Get all blacklisted phone numbers
+     * */
     @GetMapping("/v1/blacklist")
     public ResponseEntity<?> getBlacklistedPhoneNumbers() {
         logger.info("GET /v1/blacklist called");
@@ -42,6 +58,9 @@ public class BlacklistController {
         }
     }
 
+    /**
+     * Handle the BlackList Request and blacklist a list of phone numbers.
+     * */
     @PostMapping("/v1/blacklist")
     public ResponseEntity<?> addNumbersToBlacklist(@Valid @RequestBody BlackListRequest blackListRequest) {
         logger.info("POST /v1/blacklist called with request: {}", blackListRequest);
@@ -64,6 +83,9 @@ public class BlacklistController {
         }
     }
 
+    /**
+     * Handle the BlacklistRequest and whitelist a list of phone numbers.
+     * */
     @DeleteMapping("/v1/blacklist")
     public ResponseEntity<?> removeNumbersFromBlacklist(@Valid @RequestBody BlackListRequest blackListRequest) {
         logger.info("DELETE /v1/blacklist called with request: {}", blackListRequest);

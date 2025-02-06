@@ -1,10 +1,13 @@
 package org.example.notificationsystem.controllers;
 
+import org.example.notificationsystem.constants.ErrorCodeConstants;
+import org.example.notificationsystem.constants.Time;
 import org.example.notificationsystem.dto.request.ElasticSearchRequest;
 import org.example.notificationsystem.dto.response.*;
 import org.example.notificationsystem.models.SmsRequest;
 import org.example.notificationsystem.models.SmsRequestElasticsearch;
 import org.example.notificationsystem.services.impl.SmsServiceImpl;
+import org.example.notificationsystem.utils.NotificationSystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,23 @@ import static org.example.notificationsystem.utils.NotificationSystemUtils.isVal
 import static org.example.notificationsystem.utils.NotificationSystemUtils.parseIstToUtcDate;
 import static org.example.notificationsystem.constants.Time.MAX_DATE;
 
+
+/**
+ * The Sms Controller handles all the /v1/sms/** endpoint queries related to SmsRequests.
+ *
+ * It handles the following endpoints:
+ * <ul>
+ *     <li><b>GET /v1/sms/all</b>: Get all Sms Requests data from MySQL</li>
+ *     <li><b>GET /v1/sms/finished</b>: Get all finished Sms Requests data from MySQL</li>
+ *     <li><b>GET /v1/sms/in_progress</b>: Get all in progress Sms Requests data from MySQL</li>
+ *     <li><b>GET /v1/sms/failed</b>: Get all failed Sms Requests data from MySQL</li>
+ *     <li><b>GET /v1/sms/elasticsearch/all</b>: Get all Sms Requests data from Elastic Search</li>
+ *     <li><b>GET /v1/sms/pageable/elasticsearch</b>: Get requested Sms Requested data from Elastic Search</li>
+ *     <li><b>GET /v1/sms/{request_id}</b>: Get the requested Sms Request from MySQL</li>
+ *     <li><b>POST /v1/sms/send</b>: Initiate an Sms Request</li>
+ *     <li><b></b></li>
+ * </ul>
+ * */
 @RestController
 public class SmsController {
 
@@ -35,6 +55,11 @@ public class SmsController {
         this.smsServiceImpl = smsServiceImpl;
     }
 
+    /**
+     * Return all the Sms Request data in MySQL using smsServiceImpl.
+     * @return ResponseEntity<GetAllSmsResponse> if success
+     * @return ResponseEntity<ErrorResponse> otherwise
+     * */
     @GetMapping("/v1/sms/all")
     public ResponseEntity<?> getAllSmsRequests() {
         logger.info("GET /v1/sms/all called");
@@ -49,10 +74,15 @@ public class SmsController {
             );
         } catch (Exception e) {
             logger.error("Error fetching all SMS requests", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching SMS requests");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorResponse.builder().code(ErrorCodeConstants.INVALID_REQUEST.toString()).message("SERVER ERROR").build());
         }
     }
 
+    /**
+     * Return all the Sms Request data of finished requests in MySQL using smsServiceImpl.
+     * @return ResponseEntity<GetAllSmsResponse> if success
+     * @return ResponseEntity<ErrorResponse> otherwise
+     * */
     @GetMapping("/v1/sms/finished")
     public ResponseEntity<?> getFinishedSmsRequests() {
         logger.info("GET /v1/sms/finished called");
@@ -67,10 +97,15 @@ public class SmsController {
             );
         } catch (Exception e) {
             logger.error("Error fetching finished SMS requests", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching finished SMS requests");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorResponse.builder().code(ErrorCodeConstants.INVALID_REQUEST.toString()).message("SERVER ERROR").build());
         }
     }
 
+    /**
+     * Return all the Sms Request data of in progress requests in MySQL using smsServiceImpl.
+     * @return ResponseEntity<GetAllSmsResponse> if success
+     * @return ResponseEntity<ErrorResponse> otherwise
+     * */
     @GetMapping("/v1/sms/in_progress")
     public ResponseEntity<?> getInProgressSmsRequests() {
         logger.info("GET /v1/sms/in_progress called");
@@ -85,10 +120,15 @@ public class SmsController {
             );
         } catch (Exception e) {
             logger.error("Error fetching in-progress SMS requests", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching in-progress SMS requests");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorResponse.builder().code(ErrorCodeConstants.INVALID_REQUEST.toString()).message("SERVER ERROR").build());
         }
     }
 
+    /**
+     * Return all the Sms Request data of failed requests in MySQL using smsServiceImpl.
+     * @return ResponseEntity<GetAllSmsResponse> if success
+     * @return ResponseEntity<ErrorResponse> otherwise
+     * */
     @GetMapping("/v1/sms/failed")
     public ResponseEntity<?> getFailedSmsRequests() {
         logger.info("GET /v1/sms/failed called");
@@ -103,37 +143,65 @@ public class SmsController {
             );
         } catch (Exception e) {
             logger.error("Error fetching failed SMS requests", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching failed SMS requests");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorResponse.builder().code(ErrorCodeConstants.INVALID_REQUEST.toString()).message("SERVER ERROR").build());
         }
     }
 
+    /**
+     * Return all the Sms Request data of finished requests in ElasticSearch using smsServiceImpl.
+     * @return ResponseEntity<GetAllSmsResponse> if success
+     * @return ResponseEntity<ErrorResponse> otherwise
+     * */
     @GetMapping("/v1/sms/elasticsearch/all")
     public ResponseEntity<?> getAllSmsRequestElasticsearch() {
         logger.info("GET /v1/sms/pageable/elasticsearch/all called");
         try {
-            List<SmsRequestElasticsearch> result = smsServiceImpl.getAllSmsRequestsElasticsearch();
-            logger.info("Fetched {} SMS requests from Elasticsearch", result.size());
-            return ResponseEntity.ok(result);
+            List<SmsRequestElasticsearch> result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(Date.from(Instant.EPOCH), parseIstToUtcDate(MAX_DATE), Optional.empty(), new ArrayList<>());
+            List<ElasticSearchResponse> _result = new ArrayList<>();
+            result.forEach(res->
+                    _result.add(
+                            ElasticSearchResponse.builder()
+                                    .phoneNumber(res.getPhoneNumber())
+                                    .id(res.getId())
+                                    .smsRequestId(res.getSmsRequestId())
+                                    .updatedAt(res.getUpdatedAt().toString())
+                                    .createdAt(res.getCreatedAt().toString())
+                                    .message(res.getMessage())
+                                    .build()
+                    )
+            );
+
+            return ResponseEntity.ok(
+                    SmsRequestElasticsearchResponse
+                            .builder()
+                            .data(_result)
+                            .build()
+            );
         } catch (Exception e) {
-            logger.error("Error fetching SMS requests from Elasticsearch", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching SMS requests from Elasticsearch");
+            logger.error("Error querying Elasticsearch for SMS requests", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorResponse.builder().code(ErrorCodeConstants.INVALID_REQUEST.toString()).message("SERVER ERROR").build());
         }
     }
 
+    /**
+     * Return all the Sms Request data in Elastic Search of the as per the query in ElasticSearchRequest query using smsServiceImpl.
+     * Checks if the
+     * @return ResponseEntity<GetAllSmsResponse> if success
+     * @return ResponseEntity<ErrorResponse> otherwise
+     * */
     @GetMapping("/v1/sms/pageable/elasticsearch")
     public ResponseEntity<?> getSmsByPhoneNumberAndTimeRangePageable(
             @Valid @RequestBody ElasticSearchRequest query) {
         logger.info("GET /v1/sms/pageable/elasticsearch called with query: {}", query);
         try {
             boolean isPageable = isValidPageRequest(query);
-            boolean messageContaining = query.getMessageContaining() != null;
             Date effectiveStartTime = query.getStartTime() != null ? parseIstToUtcDate(query.getStartTime()) : Date.from(Instant.EPOCH);
             Date effectiveEndTime = query.getEndTime() != null ? parseIstToUtcDate(query.getEndTime()) : parseIstToUtcDate(MAX_DATE);
             boolean hasPhoneNumber = query.getPhoneNumber() != null;
             List<String> message = query.getMessageContaining() != null ? query.getMessageContaining(): new ArrayList<String>();
 
             logger.info("effectiveStartTime: {}, effectiveEndTime: {}, message containing: {}", effectiveStartTime, effectiveEndTime, message);
-            List<SmsRequestElasticsearch> result = new ArrayList<>();
+            List<SmsRequestElasticsearch> result;
 
             if (isPageable) {
                 result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumberPageSize(
@@ -152,18 +220,39 @@ public class SmsController {
                 );
             }
             logger.info("Fetched {} SMS requests from Elasticsearch", result.size());
+
+            List<ElasticSearchResponse> _result = new ArrayList<>();
+            result.forEach(res->
+                    _result.add(
+                            ElasticSearchResponse.builder()
+                                    .phoneNumber(res.getPhoneNumber())
+                                    .id(res.getId())
+                                    .smsRequestId(res.getSmsRequestId())
+                                    .updatedAt(res.getUpdatedAt().toString())
+                                    .createdAt(res.getCreatedAt().toString())
+                                    .message(res.getMessage())
+                                    .build()
+                    )
+            );
+
             return ResponseEntity.ok(
-                    ElasticSearchResponse
+                    SmsRequestElasticsearchResponse
                             .builder()
-                            .data(result)
+                            .data(_result)
                             .build()
             );
         } catch (Exception e) {
             logger.error("Error querying Elasticsearch for SMS requests", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error querying Elasticsearch");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorResponse.builder().code(ErrorCodeConstants.INVALID_REQUEST.toString()).message("SERVER ERROR").build());
         }
     }
 
+    /**
+     * Return the Sms Request in MySQL having the request_id smsServiceImpl.
+     * Checks if the
+     * @return ResponseEntity<SmsRequest> if success
+     * @return ResponseEntity<ErrorResponse> otherwise
+     * */
     @GetMapping("/v1/sms/{request_id}")
     public ResponseEntity<?> getSmsRequestById(@PathVariable Long request_id) {
         logger.info("GET /v1/sms/{} called", request_id);
@@ -188,10 +277,15 @@ public class SmsController {
             }
         } catch (Exception e) {
             logger.error("Error fetching SMS request with ID: {}", request_id, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching SMS request");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorResponse.builder().code(ErrorCodeConstants.INVALID_REQUEST.toString()).message("SERVER ERROR").build());
         }
     }
 
+    /**
+     * Initiates an Sms Request using smsServiceImpl.
+     * @return ResponseEntity<SmsRequestResponse> if success
+     * @return ResponseEntity<ErrorResponse> otherwise
+     * */
     @PostMapping("/v1/sms/send")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> sendSmsRequest(
@@ -214,7 +308,7 @@ public class SmsController {
             );
         } catch (Exception e) {
             logger.error("Error sending SMS request", e);
-            throw new ValidationException("INVALID_REQUEST", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorResponse.builder().code(ErrorCodeConstants.INVALID_REQUEST.toString()).message("SERVER ERROR").build());
         }
     }
 }
