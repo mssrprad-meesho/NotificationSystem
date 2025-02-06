@@ -7,10 +7,8 @@ import org.example.notificationsystem.dto.request.ElasticSearchRequest;
 import org.example.notificationsystem.dto.request.ThirdPartySmsApiRequest;
 import org.example.notificationsystem.models.SmsRequest;
 import org.example.notificationsystem.models.SmsRequestElasticsearch;
-import java.io.OutputStreamWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.BufferedReader;
 import java.io.IOException;

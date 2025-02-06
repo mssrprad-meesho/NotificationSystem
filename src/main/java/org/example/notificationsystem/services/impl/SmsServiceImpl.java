@@ -15,14 +15,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-
+/**
+ * Implementation of SmsService interface, handling SMS requests, statuses, and interactions with MySQL, Elasticsearch, and Kafka.
+ */
 @Service
-public class  SmsServiceImpl implements SmsService {
+public class SmsServiceImpl implements SmsService {
 
     private static final Logger logger = LoggerFactory.getLogger(SmsServiceImpl.class);
 
@@ -39,7 +40,13 @@ public class  SmsServiceImpl implements SmsService {
         this.elasticSearchRepository = elasticSearchRepository;
     }
 
-
+    /**
+     * Creates a new SMS request, saves it to MySQL, Elasticsearch, and sends a Kafka message.
+     *
+     * @param number The phone number to send the SMS to.
+     * @param message The content of the SMS message.
+     * @return The saved SmsRequest object.
+     */
     @Transactional
     public SmsRequest createSmsRequest(String number, String message) {
         logger.info("Creating SMS request for number: {}", number);
@@ -75,23 +82,52 @@ public class  SmsServiceImpl implements SmsService {
         return persistedSmsRequest;
     }
 
-    // Elastic Search queries
+    /**
+     * Fetches SMS requests from Elasticsearch based on given date range, phone number, and terms.
+     *
+     * @param from The start date of the search range.
+     * @param to The end date of the search range.
+     * @param number Optional phone number filter for the search.
+     * @param terms List of terms to search within the SMS message.
+     * @return A list of SmsRequestElasticsearch objects matching the search criteria.
+     */
     public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(Date from, Date to, Optional<String> number, List<String> terms) {
         logger.info("Fetching SMS requests from Elasticsearch");
         return elasticSearchRepository.getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequest(from, to, number, terms);
     }
 
+    /**
+     * Fetches paginated SMS requests from Elasticsearch based on given date range, phone number, and terms.
+     *
+     * @param from The start date of the search range.
+     * @param to The end date of the search range.
+     * @param number Optional phone number filter for the search.
+     * @param terms List of terms to search within the SMS message.
+     * @param page The page number for pagination.
+     * @param size The size of the page.
+     * @return A list of SmsRequestElasticsearch objects for the requested page.
+     */
     public List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumberPageSize(Date from, Date to, Optional<String> number, List<String> terms, int page, int size) {
         logger.info("Fetching SMS requests from Elasticsearch");
         return elasticSearchRepository.getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequestPageSize(from, to, number, terms, page, size);
     }
 
-    // SmsRequest Queries
+    /**
+     * Fetches an SMS request by its ID from MySQL.
+     *
+     * @param Id The ID of the SMS request to fetch.
+     * @return An Optional containing the SmsRequest object if found, else an empty Optional.
+     */
     public Optional<SmsRequest> getSmsRequest(Long Id) {
         logger.info("Fetching SMS request by ID: {}", Id);
         return smsRequestRepository.findById(Id);
     }
 
+    /**
+     * Fetches all SMS requests from MySQL.
+     *
+     * @return A list of all SmsRequest objects from MySQL.
+     */
     public List<SmsRequest> getAllSmsRequests() {
         logger.info("Fetching all SMS requests from MySQL");
         List<SmsRequest> smsRequests = smsRequestRepository.findAll();
@@ -99,21 +135,43 @@ public class  SmsServiceImpl implements SmsService {
         return smsRequests;
     }
 
+    /**
+     * Fetches all finished SMS requests from MySQL.
+     *
+     * @return A list of all finished SmsRequest objects from MySQL.
+     */
     public List<SmsRequest> getFinishedSmsRequests() {
         logger.info("Fetching finished SMS requests");
         return smsRequestRepository.findByStatus(StatusConstants.FINISHED.ordinal());
     }
 
+    /**
+     * Fetches all in-progress SMS requests from MySQL.
+     *
+     * @return A list of all in-progress SmsRequest objects from MySQL.
+     */
     public List<SmsRequest> getInProgressSmsRequests() {
         logger.info("Fetching in-progress SMS requests");
         return smsRequestRepository.findByStatus(StatusConstants.IN_PROGRESS.ordinal());
     }
 
+    /**
+     * Fetches all failed SMS requests from MySQL.
+     *
+     * @return A list of all failed SmsRequest objects from MySQL.
+     */
     public List<SmsRequest> getFailedSmsRequests() {
         logger.info("Fetching failed SMS requests");
         return smsRequestRepository.findByStatus(StatusConstants.FAILED.ordinal());
     }
 
+    /**
+     * Updates the status of an SMS request in MySQL.
+     *
+     * @param smsRequestId The ID of the SMS request to update.
+     * @param smsStatus    The new status to set for the SMS request.
+     * @return
+     */
     @Transactional
     public Optional<SmsRequest> setStatus(Long smsRequestId, StatusConstants smsStatus) {
         logger.info("Updating status for SMS request ID: {} to status: {}", smsRequestId, smsStatus);
@@ -129,6 +187,13 @@ public class  SmsServiceImpl implements SmsService {
         return optSmsRequest;
     }
 
+    /**
+     * Updates the failure code of an SMS request in MySQL.
+     *
+     * @param smsRequestId   The ID of the SMS request to update.
+     * @param smsFailureCode The failure code to set for the SMS request.
+     * @return
+     */
     @Transactional
     public Optional<SmsRequest> setFailureCode(Long smsRequestId, FailureCodeConstants smsFailureCode) {
         logger.info("Setting failure code for SMS request ID: {} to status: {}", smsRequestId, smsFailureCode);

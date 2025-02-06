@@ -11,6 +11,9 @@ import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Implements BlacklistService using RedisTemplate
+ * */
 @Service
 public class BlacklistServiceImpl implements BlacklistService {
 
@@ -21,6 +24,13 @@ public class BlacklistServiceImpl implements BlacklistService {
         this.redisTemplate = template;
     }
 
+    /**
+     * Checks if the given phone number is blacklisted.
+     *
+     * @param number The phone number to check.
+     * @return True if the number is blacklisted, false otherwise.
+     */
+    @Override
     public Boolean isNumberBlacklisted(String number) {
         logger.info("Checking if number {} is blacklisted", number);
 
@@ -42,6 +52,12 @@ public class BlacklistServiceImpl implements BlacklistService {
         }
     }
 
+    /**
+     * Retrieves all blacklisted phone numbers.
+     *
+     * @return A set of blacklisted phone numbers.
+     */
+    @Override
     public Set<String> getAllBlacklistedNumbers() {
         logger.info("Fetching all blacklisted numbers from DB");
         Set<String> phoneNumbers = this.redisTemplate.opsForSet().members(RedisConstants.blacklisted_key);
@@ -54,6 +70,13 @@ public class BlacklistServiceImpl implements BlacklistService {
         }
     }
 
+    /**
+     * Adds phone numbers to the blacklist.
+     *
+     * @param numbers The phone numbers to add to the blacklist.
+     * @return True if the numbers were successfully added, false otherwise.
+     */
+    @Override
     @Transactional
     public boolean addNumbersToBlacklist(String[] numbers) {
         logger.info("Adding numbers to blacklist: {}", numbers);
@@ -68,16 +91,23 @@ public class BlacklistServiceImpl implements BlacklistService {
         }
     }
 
+    /**
+     * Removes phone numbers from the blacklist.
+     *
+     * @param numbers The phone numbers to remove from the blacklist.
+     * @return True if the numbers were successfully removed, false otherwise.
+     */
+    @Override
     @Transactional
     public boolean removeNumbersFromBlacklist(String[] numbers) {
-        logger.info("Removing numbers to blacklist: {}", numbers);
+        logger.info("Removing numbers from blacklist: {}", numbers);
 
         Long res = this.redisTemplate.opsForSet().remove(RedisConstants.blacklisted_key, numbers);
         if (res != null) {
-            logger.info("Successfully removed {} numbers to blacklist", numbers.length);
+            logger.info("Successfully removed {} numbers from blacklist", numbers.length);
             return true;
         } else {
-            logger.info("Failed to remove {} numbers to blacklist", numbers.length);
+            logger.info("Failed to remove {} numbers from blacklist", numbers.length);
             return false;
         }
     }

@@ -27,10 +27,12 @@ import java.util.Optional;
 
 import static org.example.notificationsystem.constants.ElasticsearchConstants.indexName;
 
+/**
+ * Elasticsearch repository for interacting with Sms Requests stored in Elasticsearch.
+ */
 @Repository
 public class ElasticSearchRepository {
     private final RestHighLevelClient client;
-
     private static final Logger logger = LoggerFactory.getLogger(ElasticSearchRepository.class);
     private final ObjectMapper objectMapper;
     private final SearchRequest matchAllSearchRequest;
@@ -52,6 +54,11 @@ public class ElasticSearchRepository {
         this.matchCreatedAtIsBetweenAndMessageContainingAndPhoneNumberSearchRequest = new SearchRequest(indexName);
     }
 
+    /**
+     * Returns all SMS requests from Elasticsearch.
+     *
+     * @return A list of {@link SmsRequestElasticsearch} objects.
+     */
     public List<SmsRequestElasticsearch> getAllSmsRequestsElasticsearch() {
         List<SmsRequestElasticsearch> results = new ArrayList<>();
         try {
@@ -60,20 +67,27 @@ public class ElasticSearchRepository {
 
             SearchHits hits = searchResponse.getHits();
             for (SearchHit hit : hits) {
-                logger.debug("Search Hit: {}", hit);
                 Optional<SmsRequestElasticsearch> optionalParsed = hitToSmsRequest(hit);
                 optionalParsed.ifPresent(results::add);
             }
         } catch (IOException e) {
             logger.error("Error while searching for sms requests in Elasticsearch: ", e);
         }
-
         return results;
     }
 
+    /**
+     * Returns SMS requests with createdAt between specified dates and message containing terms and optional phone number.
+     *
+     * @param from The start date for querying.
+     * @param to The end date for querying.
+     * @param number The optional phone number to query.
+     * @param terms The list of terms to match in the message.
+     * @return A list of {@link SmsRequestElasticsearch} objects.
+     */
     public List<SmsRequestElasticsearch> getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequest(Date from, Date to, Optional<String> number, List<String> terms) {
         List<SmsRequestElasticsearch> results = new ArrayList<>();
-        BoolQueryBuilder boolQuery =  getBoolQuery(from, to, number, terms);
+        BoolQueryBuilder boolQuery = getBoolQuery(from, to, number, terms);
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
                 .query(boolQuery)
@@ -83,14 +97,35 @@ public class ElasticSearchRepository {
         return searchAndGetSmsRequestsElasticSearch(results, searchSourceBuilder);
     }
 
+    /**
+     * Returns SMS requests based on a query, with pagination.
+     *
+     * @param from The start date for querying.
+     * @param to The end date for querying.
+     * @param number The optional phone number to query.
+     * @param terms The list of terms to match in the message.
+     * @param page The page number.
+     * @param size The size of each page.
+     * @return A list of {@link SmsRequestElasticsearch} objects.
+     */
+    public List<SmsRequestElasticsearch> getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequestPageSize(Date from, Date to, Optional<String> number, List<String> terms, int page, int size) {
+        List<SmsRequestElasticsearch> results = new ArrayList<>();
+        BoolQueryBuilder boolQuery = getBoolQuery(from, to, number, terms);
+
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
+                .query(boolQuery)
+                .from(page * size)
+                .size(size);
+
+        return searchAndGetSmsRequestsElasticSearch(results, searchSourceBuilder);
+    }
+
     private List<SmsRequestElasticsearch> searchAndGetSmsRequestsElasticSearch(List<SmsRequestElasticsearch> results, SearchSourceBuilder searchSourceBuilder) {
         matchCreatedAtIsBetweenAndMessageContainingAndPhoneNumberSearchRequest.source(searchSourceBuilder);
-
         try {
             SearchResponse searchResponse = client.search(this.matchCreatedAtIsBetweenAndMessageContainingAndPhoneNumberSearchRequest, RequestOptions.DEFAULT);
             SearchHits hits = searchResponse.getHits();
             for (SearchHit hit : hits) {
-                logger.debug("Search Hit: {}", hit);
                 Optional<SmsRequestElasticsearch> optionalParsed = hitToSmsRequest(hit);
                 optionalParsed.ifPresent(results::add);
             }
@@ -100,44 +135,26 @@ public class ElasticSearchRepository {
         return results;
     }
 
-    BoolQueryBuilder getBoolQuery(Date from, Date to, Optional<String> number, List<String> terms) {
-        BoolQueryBuilder boolQuery =QueryBuilders.boolQuery()
+    private BoolQueryBuilder getBoolQuery(Date from, Date to, Optional<String> number, List<String> terms) {
+        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery()
                 .must(QueryBuilders.rangeQuery("createdAt")
                         .gte(NotificationSystemUtils.DateToElasticSearchTimestamp(from))
                         .lte(NotificationSystemUtils.DateToElasticSearchTimestamp(to))
                 );
 
-        number.ifPresent(num ->
-                boolQuery.must(QueryBuilders.matchQuery("phone_number", num))
-        );
+        number.ifPresent(num -> boolQuery.must(QueryBuilders.matchQuery("phone_number", num)));
+        terms.forEach(term -> boolQuery.filter(QueryBuilders.matchQuery("message", term)));
 
-        terms.forEach(term ->
-                boolQuery.filter(QueryBuilders.matchQuery("message", term))
-        );
         return boolQuery;
-    }
-
-    public List<SmsRequestElasticsearch> getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequestPageSize(Date from, Date to, Optional<String> number, List<String> terms, int page, int size) {
-        List<SmsRequestElasticsearch> results = new ArrayList<>();
-        BoolQueryBuilder boolQuery = getBoolQuery(from, to, number, terms);
-
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
-                .query(boolQuery)
-                .from(page*size)
-                .size(size);
-
-        return searchAndGetSmsRequestsElasticSearch(results, searchSourceBuilder);
     }
 
     private Optional<SmsRequestElasticsearch> hitToSmsRequest(SearchHit hit) {
         try {
             SmsRequestElasticsearch smsRequestElasticsearch = objectMapper.readValue(hit.getSourceAsString(), SmsRequestElasticsearch.class);
-            if(smsRequestElasticsearch != null) smsRequestElasticsearch.setId(hit.getId());
+            if (smsRequestElasticsearch != null) smsRequestElasticsearch.setId(hit.getId());
             return Optional.ofNullable(smsRequestElasticsearch);
         } catch (JsonProcessingException e) {
-            // Log and return empty Optional so we don't abort the entire list processing.
-            logger.warn("Failed to parse document (id={}) into SmsRequestElasticsearch: {}",
-                    hit.getId(), e.getMessage());
+            logger.warn("Failed to parse document (id={}) into SmsRequestElasticsearch: {}", hit.getId(), e.getMessage());
             return Optional.empty();
         }
     }
@@ -153,9 +170,9 @@ public class ElasticSearchRepository {
 
         SearchHits hits = searchResponse.getHits();
         TotalHits totalHits = hits.getTotalHits();
+        if(totalHits == null) return;
         logger.info("Total hits: {}", totalHits.value);
         logger.info("Hits relation: {}", totalHits.relation);
         logger.info("Max score: {}", hits.getMaxScore());
     }
-
 }
