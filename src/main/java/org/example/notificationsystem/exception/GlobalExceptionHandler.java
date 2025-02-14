@@ -16,7 +16,7 @@ public class GlobalExceptionHandler {
     /**
      * If a MethodArgumentNotValidException occurs (for ex, while parsing a request body),
      * We return a custom error.
-     * */
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Error> handleValidationExceptions(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getFieldErrors().stream()
@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
     /**
      * If a Validation Exception occurs (for example while parsing a request body),
      * we return a custom error.
-     * */
+     */
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<Error> handleValidationException(ValidationException ex) {
         ErrorResponse errorResponse = ErrorResponse.builder()
@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
     /**
      * If any other unhandled exception occurs,
      * We return a custom error.
-     * */
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Error> handleException(Exception ex) {
         ErrorResponse errorResponse = ErrorResponse.builder()

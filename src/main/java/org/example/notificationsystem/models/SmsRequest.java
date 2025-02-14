@@ -32,7 +32,7 @@ import java.util.Date;
  *       to the current time.</li>
  * </ul>
  * <p>
- *
+ * <p>
  * This class is annotated with: {@code @Getter}, {@code @Setter}, {@code @NoArgsConstructor}, {@code @AllArgsConstructor}, {@code @Builder})
  *
  * @author Malladi Pradyumna
@@ -73,11 +73,16 @@ public class SmsRequest {
         updatedAt = NotificationSystemUtils.getNowAsDateIST();
         status = StatusConstants.IN_PROGRESS.ordinal();
         failureCode = FailureCodeConstants.IN_PROGRESS.ordinal();
-        failureComments = "";
+        failureComments = null;
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = NotificationSystemUtils.getNowAsDateIST();
+    }
+
+    public void setFailureCode(Integer failureCode, String failureComments) {
+        this.failureCode = failureCode;
+        this.failureComments = failureComments;
     }
 }

@@ -24,7 +24,7 @@ import java.util.Set;
  * </ul>
  *
  * @author Malladi Pradyumna
- * */
+ */
 
 @RestController
 public class BlacklistController {
@@ -39,7 +39,7 @@ public class BlacklistController {
 
     /**
      * Get all blacklisted phone numbers
-     * */
+     */
     @GetMapping("/v1/blacklist")
     public ResponseEntity<?> getBlacklistedPhoneNumbers() {
         logger.info("GET /v1/blacklist called");
@@ -60,7 +60,7 @@ public class BlacklistController {
 
     /**
      * Handle the BlackList Request and blacklist a list of phone numbers.
-     * */
+     */
     @PostMapping("/v1/blacklist")
     public ResponseEntity<?> addNumbersToBlacklist(@Valid @RequestBody BlackListRequest blackListRequest) {
         logger.info("POST /v1/blacklist called with request: {}", blackListRequest);
@@ -85,7 +85,7 @@ public class BlacklistController {
 
     /**
      * Handle the BlacklistRequest and whitelist a list of phone numbers.
-     * */
+     */
     @DeleteMapping("/v1/blacklist")
     public ResponseEntity<?> removeNumbersFromBlacklist(@Valid @RequestBody BlackListRequest blackListRequest) {
         logger.info("DELETE /v1/blacklist called with request: {}", blackListRequest);

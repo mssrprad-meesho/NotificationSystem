@@ -7,16 +7,16 @@ import org.example.notificationsystem.models.SmsRequest;
 import org.example.notificationsystem.models.SmsRequestElasticsearch;
 import org.example.notificationsystem.repositories.SmsRequestElasticsearchRepository;
 import org.example.notificationsystem.repositories.SmsRequestRepository;
+import org.example.notificationsystem.services.impl.SmsServiceImpl;
 import org.example.notificationsystem.utils.NotificationSystemUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.mockito.Mockito;
-import org.example.notificationsystem.services.impl.SmsServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ class SmsServiceImplTest {
         smsRequests = new ArrayList<>();
         smsRequests.add(SmsRequest.builder().id(1L).phoneNumber("+911111111111").build());
         _smsRequestsElasticsearch = new ArrayList<>();
-        _smsRequestsElasticsearch.add( NotificationSystemUtils.getSmsRequestElasticsearchFromSmsRequest(smsRequests.get(0)));
+        _smsRequestsElasticsearch.add(NotificationSystemUtils.getSmsRequestElasticsearchFromSmsRequest(smsRequests.get(0)));
     }
 
     @Test
@@ -133,7 +133,7 @@ class SmsServiceImplTest {
         Mockito.when(smsRequestRepository.findById(1L))
                 .thenReturn(Optional.of(smsRequests.get(0)));
 
-        Optional<SmsRequest> optionalSmsRequest = smsService.setFailureCode(1L, failureCode);
+        Optional<SmsRequest> optionalSmsRequest = smsService.setFailureCode(1L, failureCode, "");
         assertTrue(optionalSmsRequest.isPresent());
         assertSame(failureCode.getCode(), optionalSmsRequest.get().getFailureCode());
     }

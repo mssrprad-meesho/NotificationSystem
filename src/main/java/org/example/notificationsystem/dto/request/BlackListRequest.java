@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Object to represent a BlackListRequest.
  * Has the phone numbers to be blacklisted/whitelisted.
- * */
+ */
 @Data
 @Builder
 @AllArgsConstructor
@@ -19,7 +19,7 @@ import java.util.List;
 public class BlackListRequest {
     /**
      * The phone numbers to be blacklisted or whitelisted.
-     * */
+     */
     @NotNull
     private List<String> phoneNumbers;
 }

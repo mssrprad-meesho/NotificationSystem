@@ -14,14 +14,17 @@ import org.example.notificationsystem.utils.NotificationSystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Subscribes to a partition (check KafkaConsumerConfig for configuration parameters) and processes the logs received.
- * */
-@Service("NotificationService")
+ */
+@Component
 public class Consumer {
 
     private static final Logger logger = LoggerFactory.getLogger(Consumer.class);
@@ -29,7 +32,7 @@ public class Consumer {
     /**
      * The blacklist and sms service are injected through the constructor for interacting with Redis (to check if a number is blacklisted) and
      * updating the status of the Sms Request in SmsRequest.
-     * */
+     */
     private final BlacklistServiceImpl blacklistServiceImpl;
     private final SmsServiceImpl smsServiceImpl;
 
@@ -40,8 +43,8 @@ public class Consumer {
 
     /**
      * Handle an Sms Request.
-     * */
-    @KafkaListener(topics = "${spring.kafka.topic_name}", containerFactory = "NotificationContainerFactory")
+     */
+    @KafkaListener(topics = "${spring.kafka.sms-request-topic-name}", containerFactory = "SmsRequestConcurrentListenerFactory")
     public void consume(ConsumerRecord<Long, Long> record) {
         /**
          * Log the receival of the request.
@@ -70,7 +73,7 @@ public class Consumer {
                      * */
                     logger.warn("Phone number {} is blacklisted. Marking SMS request ID: {} as FAILED", phoneNumber, smsRequestId);
                     this.smsServiceImpl.setStatus(smsRequestId, StatusConstants.FAILED);
-                    this.smsServiceImpl.setFailureCode(smsRequestId, FailureCodeConstants.BLACKLISTED_PHONE_NUMBER);
+                    this.smsServiceImpl.setFailureCode(smsRequestId, FailureCodeConstants.BLACKLISTED_PHONE_NUMBER, "The phone number " + phoneNumber + " is blacklisted");
                 } else {
                     logger.info("Phone number {} is not blacklisted. Proceeding with SMS sending...", phoneNumber);
                     /**
@@ -85,9 +88,9 @@ public class Consumer {
                                             .builder()
                                             .sms(
                                                     SmsThirdPartySmsApiRequest
-                                                    .builder()
-                                                    .text(optionalSmsRequest.get().getMessage())
-                                                    .build()
+                                                            .builder()
+                                                            .text(optionalSmsRequest.get().getMessage())
+                                                            .build()
                                             )
                                             .build()
                             )
@@ -115,26 +118,26 @@ public class Consumer {
                     /**
                      * Handle all the possible errors that might occur from the third party API request.
                      * */
-                    if(thirdPartyApiResponseCode == ThirdPartyApiResponseCode.SUCCESS){
+                    if (thirdPartyApiResponseCode == ThirdPartyApiResponseCode.SUCCESS) {
                         /**
                          * If success, update state to indicate so in MySQL.
                          * */
                         this.smsServiceImpl.setStatus(smsRequestId, StatusConstants.FINISHED);
-                        this.smsServiceImpl.setFailureCode(smsRequestId, FailureCodeConstants.SUCCESS);
+                        this.smsServiceImpl.setFailureCode(smsRequestId, FailureCodeConstants.SUCCESS, "No Failure.");
                     } else {
                         /**
                          * If failure, update state to indicate so in MySQL.
                          * */
                         this.smsServiceImpl.setStatus(smsRequestId, StatusConstants.FAILED);
 
-                        if(thirdPartyApiResponseCode == ThirdPartyApiResponseCode.TIMEOUT){
-                            this.smsServiceImpl.setFailureCode(smsRequestId, FailureCodeConstants.EXTERNAL_API_TIMEOUT);
-                        }  else if(thirdPartyApiResponseCode == ThirdPartyApiResponseCode.INVALID_REQUEST_BODY){
-                            this.smsServiceImpl.setFailureCode(smsRequestId, FailureCodeConstants.INVALID_REQUEST_BODY);
-                        } else if(thirdPartyApiResponseCode == ThirdPartyApiResponseCode.MALFORMED_URL){
-                            this.smsServiceImpl.setFailureCode(smsRequestId, FailureCodeConstants.INVALID_URL);
+                        if (thirdPartyApiResponseCode == ThirdPartyApiResponseCode.TIMEOUT) {
+                            this.smsServiceImpl.setFailureCode(smsRequestId, FailureCodeConstants.EXTERNAL_API_TIMEOUT, "TCP Connection timed out.");
+                        } else if (thirdPartyApiResponseCode == ThirdPartyApiResponseCode.INVALID_REQUEST_BODY) {
+                            this.smsServiceImpl.setFailureCode(smsRequestId, FailureCodeConstants.INVALID_REQUEST_BODY, "Request body when making third party request was invalid.");
+                        } else if (thirdPartyApiResponseCode == ThirdPartyApiResponseCode.MALFORMED_URL) {
+                            this.smsServiceImpl.setFailureCode(smsRequestId, FailureCodeConstants.INVALID_URL, "URL of third party request was malformed.");
                         } else {
-                            this.smsServiceImpl.setFailureCode(smsRequestId, FailureCodeConstants.EXTERNAL_API_ERROR);
+                            this.smsServiceImpl.setFailureCode(smsRequestId, FailureCodeConstants.EXTERNAL_API_ERROR, "Something went wrong while making third party request.");
                         }
                     }
                     logger.info("SMS request ID: {} sent successfully. Marking as FINISHED", smsRequestId);

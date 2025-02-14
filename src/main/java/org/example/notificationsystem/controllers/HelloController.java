@@ -14,8 +14,9 @@ import java.util.List;
 /**
  * The HelloController is used only for testing purposes.
  * It is to be ignored and not used.
+ *
  * @author Malladi Pradyumna
- * */
+ */
 @RestController
 public class HelloController {
     private static final Logger logger = LoggerFactory.getLogger(HelloController.class);

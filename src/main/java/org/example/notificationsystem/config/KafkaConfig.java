@@ -8,7 +8,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaAdmin;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 public class KafkaConfig {
@@ -16,7 +19,7 @@ public class KafkaConfig {
     @Value(value = "${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
 
-    @Value(value="${spring.kafka.topic_name}")
+    @Value(value = "${spring.kafka.sms-request-topic-name}")
     private String topicName;
 
     /* https://www.confluent.io/blog/how-choose-number-topics-partitions-kafka-cluster/
@@ -24,10 +27,10 @@ public class KafkaConfig {
     You measure the throughout that you can achieve on a single partition for production (call it p) and consumption (call it c).
     Let’s say your target throughput is t. Then you need to have at least max(t/p, t/c) partitions.
     */
-    @Value(value="${spring.kafka.num_partitions}")
+    @Value(value = "${spring.kafka.num_partitions}")
     private int numPartitions;
 
-    @Value(value="${spring.kafka.num_replicas}")
+    @Value(value = "${spring.kafka.num_replicas}")
     private int numReplicas;
 
     @Bean

@@ -32,8 +32,8 @@ import static org.example.notificationsystem.constants.ElasticsearchConstants.in
  */
 @Repository
 public class ElasticSearchRepository {
-    private final RestHighLevelClient client;
     private static final Logger logger = LoggerFactory.getLogger(ElasticSearchRepository.class);
+    private final RestHighLevelClient client;
     private final ObjectMapper objectMapper;
     private final SearchRequest matchAllSearchRequest;
     private final SearchRequest matchCreatedAtIsBetweenAndMessageContainingAndPhoneNumberSearchRequest;
@@ -79,15 +79,15 @@ public class ElasticSearchRepository {
     /**
      * Returns SMS requests with createdAt between specified dates and message containing terms and optional phone number.
      *
-     * @param from The start date for querying.
-     * @param to The end date for querying.
+     * @param from   The start date for querying.
+     * @param to     The end date for querying.
      * @param number The optional phone number to query.
-     * @param terms The list of terms to match in the message.
+     * @param terms  The list of terms to match in the message.
      * @return A list of {@link SmsRequestElasticsearch} objects.
      */
-    public List<SmsRequestElasticsearch> getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequest(Date from, Date to, Optional<String> number, List<String> terms) {
+    public List<SmsRequestElasticsearch> getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequest(Date from, Date to, Optional<String> number, List<String> terms, String substr) {
         List<SmsRequestElasticsearch> results = new ArrayList<>();
-        BoolQueryBuilder boolQuery = getBoolQuery(from, to, number, terms);
+        BoolQueryBuilder boolQuery = getBoolQuery(from, to, number, terms, substr);
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
                 .query(boolQuery)
@@ -100,17 +100,17 @@ public class ElasticSearchRepository {
     /**
      * Returns SMS requests based on a query, with pagination.
      *
-     * @param from The start date for querying.
-     * @param to The end date for querying.
+     * @param from   The start date for querying.
+     * @param to     The end date for querying.
      * @param number The optional phone number to query.
-     * @param terms The list of terms to match in the message.
-     * @param page The page number.
-     * @param size The size of each page.
+     * @param terms  The list of terms to match in the message.
+     * @param page   The page number.
+     * @param size   The size of each page.
      * @return A list of {@link SmsRequestElasticsearch} objects.
      */
-    public List<SmsRequestElasticsearch> getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequestPageSize(Date from, Date to, Optional<String> number, List<String> terms, int page, int size) {
+    public List<SmsRequestElasticsearch> getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequestPageSize(Date from, Date to, Optional<String> number, List<String> terms, int page, int size, String substr) {
         List<SmsRequestElasticsearch> results = new ArrayList<>();
-        BoolQueryBuilder boolQuery = getBoolQuery(from, to, number, terms);
+        BoolQueryBuilder boolQuery = getBoolQuery(from, to, number, terms, substr);
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
                 .query(boolQuery)
@@ -135,7 +135,7 @@ public class ElasticSearchRepository {
         return results;
     }
 
-    private BoolQueryBuilder getBoolQuery(Date from, Date to, Optional<String> number, List<String> terms) {
+    private BoolQueryBuilder getBoolQuery(Date from, Date to, Optional<String> number, List<String> terms, String substr) {
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery()
                 .must(QueryBuilders.rangeQuery("createdAt")
                         .gte(NotificationSystemUtils.DateToElasticSearchTimestamp(from))
@@ -144,6 +144,11 @@ public class ElasticSearchRepository {
 
         number.ifPresent(num -> boolQuery.must(QueryBuilders.matchQuery("phone_number", num)));
         terms.forEach(term -> boolQuery.filter(QueryBuilders.matchQuery("message", term)));
+
+        logger.info("Substring must be: {}", substr);
+        if (substr != null) {
+            boolQuery.filter(QueryBuilders.wildcardQuery("message", substr));
+        }
 
         return boolQuery;
     }
@@ -170,7 +175,7 @@ public class ElasticSearchRepository {
 
         SearchHits hits = searchResponse.getHits();
         TotalHits totalHits = hits.getTotalHits();
-        if(totalHits == null) return;
+        if (totalHits == null) return;
         logger.info("Total hits: {}", totalHits.value);
         logger.info("Hits relation: {}", totalHits.relation);
         logger.info("Max score: {}", hits.getMaxScore());

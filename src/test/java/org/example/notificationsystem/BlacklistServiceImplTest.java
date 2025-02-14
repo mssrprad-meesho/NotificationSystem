@@ -2,8 +2,8 @@ package org.example.notificationsystem;
 
 import org.example.notificationsystem.constants.RedisConstants;
 import org.example.notificationsystem.services.impl.BlacklistServiceImpl;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;

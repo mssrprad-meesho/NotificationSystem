@@ -2,8 +2,11 @@ package org.example.notificationsystem.services;
 
 import org.example.notificationsystem.constants.FailureCodeConstants;
 import org.example.notificationsystem.constants.StatusConstants;
+import org.example.notificationsystem.dto.request.ElasticSearchRequest;
+import org.example.notificationsystem.dto.response.SmsRequestElasticsearchResponse;
 import org.example.notificationsystem.models.SmsRequest;
 import org.example.notificationsystem.models.SmsRequestElasticsearch;
+import org.springframework.http.ResponseEntity;
 
 import java.util.Date;
 import java.util.List;
@@ -17,7 +20,7 @@ public interface SmsService {
     /**
      * Creates a new SMS request with the provided number and message.
      *
-     * @param number The phone number to send the SMS to.
+     * @param number  The phone number to send the SMS to.
      * @param message The content of the SMS.
      * @return The created {@link SmsRequest}.
      */
@@ -71,33 +74,22 @@ public interface SmsService {
     /**
      * Sets the failure code of an SMS request.
      *
-     * @param smsRequestId   The ID of the SMS request.
-     * @param smsFailureCode The failure code to set.
-     * @return
+     * @param smsRequestId    The ID of the SMS request.
+     * @param smsFailureCode  The failure code to set.
+     * @param failureComments The Failure Comments
+     * @return {@link SmsRequest}
      */
-    Optional<SmsRequest> setFailureCode(Long smsRequestId, FailureCodeConstants smsFailureCode);
+    Optional<SmsRequest> setFailureCode(Long smsRequestId, FailureCodeConstants smsFailureCode, String failureComments);
 
     /**
-     * Retrieves SMS requests from Elasticsearch based on a date range, optional phone number, and search terms.
-     *
-     * @param from The start date for querying.
-     * @param to The end date for querying.
-     * @param number The optional phone number to query.
-     * @param substr The list of substrings to search for in the message.
-     * @return A list of {@link SmsRequestElasticsearch} objects.
+     * Handles an Elasticsearch query request and returns the Sms Requests (in elastic search) that satisfy the criteria.
+     * Handles various scenarios like:
+     * a) Optional Pagination
+     * b) Optional Date based filtering
+     * c) Optional substring based filtering
+     * d) Optional Phone Number based filtering
+     * @param query
+     * @return Response Entity containing {@link SmsRequestElasticsearchResponse}
      */
-    List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(Date from, Date to, Optional<String> number, List<String> substr);
-
-    /**
-     * Retrieves SMS requests from Elasticsearch with pagination based on a date range, optional phone number, and search terms.
-     *
-     * @param from The start date for querying.
-     * @param to The end date for querying.
-     * @param number The optional phone number to query.
-     * @param substr The list of substrings to search for in the message.
-     * @param page The page number.
-     * @param size The size of each page.
-     * @return A list of {@link SmsRequestElasticsearch} objects.
-     */
-    List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumberPageSize(Date from, Date to, Optional<String> number, List<String> substr, int page, int size);
+    ResponseEntity<SmsRequestElasticsearchResponse> getAllSmsRequestElasticsearchFromQuery(ElasticSearchRequest query);
 }

@@ -7,13 +7,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Implements BlacklistService using RedisTemplate
- * */
+ */
 @Service
 public class BlacklistServiceImpl implements BlacklistService {
 
@@ -77,7 +76,6 @@ public class BlacklistServiceImpl implements BlacklistService {
      * @return True if the numbers were successfully added, false otherwise.
      */
     @Override
-    @Transactional
     public boolean addNumbersToBlacklist(String[] numbers) {
         logger.info("Adding numbers to blacklist: {}", numbers);
 
@@ -98,7 +96,6 @@ public class BlacklistServiceImpl implements BlacklistService {
      * @return True if the numbers were successfully removed, false otherwise.
      */
     @Override
-    @Transactional
     public boolean removeNumbersFromBlacklist(String[] numbers) {
         logger.info("Removing numbers from blacklist: {}", numbers);
 

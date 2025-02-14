@@ -1,6 +1,7 @@
 package org.example.notificationsystem.models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.example.notificationsystem.utils.NotificationSystemUtils;
@@ -9,7 +10,6 @@ import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
@@ -34,7 +34,7 @@ import java.util.Date;
  *       to the current time.</li>
  * </ul>
  * <p>
- *
+ * <p>
  * This class is annotated with: {@code @Getter}, {@code @Setter}, {@code @NoArgsConstructor}, {@code @AllArgsConstructor}, {@code @Builder})
  *
  * @author Malladi Pradyumna
@@ -64,7 +64,7 @@ public class SmsRequestElasticsearch {
     private String message;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING,
-    pattern = "yyyyMMdd'T'HHmmss.SSSX",
+            pattern = "yyyyMMdd'T'HHmmss.SSSX",
             timezone = "UTC")
     @Field(type = FieldType.Date, format = DateFormat.basic_date_time)
     private Date createdAt;

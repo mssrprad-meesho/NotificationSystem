@@ -1,13 +1,11 @@
 package org.example.notificationsystem.controllers;
 
 import org.example.notificationsystem.constants.ErrorCodeConstants;
-import org.example.notificationsystem.constants.Time;
 import org.example.notificationsystem.dto.request.ElasticSearchRequest;
 import org.example.notificationsystem.dto.response.*;
 import org.example.notificationsystem.models.SmsRequest;
 import org.example.notificationsystem.models.SmsRequestElasticsearch;
 import org.example.notificationsystem.services.impl.SmsServiceImpl;
-import org.example.notificationsystem.utils.NotificationSystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,21 +14,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.ValidationException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static org.example.notificationsystem.utils.NotificationSystemUtils.isValidPageRequest;
-import static org.example.notificationsystem.utils.NotificationSystemUtils.parseIstToUtcDate;
 import static org.example.notificationsystem.constants.Time.MAX_DATE;
+import static org.example.notificationsystem.utils.NotificationSystemUtils.parseIstToUtcDate;
 
 
 /**
  * The Sms Controller handles all the /v1/sms/** endpoint queries related to SmsRequests.
- *
+ * <p>
  * It handles the following endpoints:
  * <ul>
  *     <li><b>GET /v1/sms/all</b>: Get all Sms Requests data from MySQL</li>
@@ -43,7 +39,7 @@ import static org.example.notificationsystem.constants.Time.MAX_DATE;
  *     <li><b>POST /v1/sms/send</b>: Initiate an Sms Request</li>
  *     <li><b></b></li>
  * </ul>
- * */
+ */
 @RestController
 public class SmsController {
 
@@ -57,9 +53,10 @@ public class SmsController {
 
     /**
      * Return all the Sms Request data in MySQL using smsServiceImpl.
+     *
      * @return ResponseEntity<GetAllSmsResponse> if success
      * @return ResponseEntity<ErrorResponse> otherwise
-     * */
+     */
     @GetMapping("/v1/sms/all")
     public ResponseEntity<?> getAllSmsRequests() {
         logger.info("GET /v1/sms/all called");
@@ -80,9 +77,10 @@ public class SmsController {
 
     /**
      * Return all the Sms Request data of finished requests in MySQL using smsServiceImpl.
+     *
      * @return ResponseEntity<GetAllSmsResponse> if success
      * @return ResponseEntity<ErrorResponse> otherwise
-     * */
+     */
     @GetMapping("/v1/sms/finished")
     public ResponseEntity<?> getFinishedSmsRequests() {
         logger.info("GET /v1/sms/finished called");
@@ -103,9 +101,10 @@ public class SmsController {
 
     /**
      * Return all the Sms Request data of in progress requests in MySQL using smsServiceImpl.
+     *
      * @return ResponseEntity<GetAllSmsResponse> if success
      * @return ResponseEntity<ErrorResponse> otherwise
-     * */
+     */
     @GetMapping("/v1/sms/in_progress")
     public ResponseEntity<?> getInProgressSmsRequests() {
         logger.info("GET /v1/sms/in_progress called");
@@ -126,9 +125,10 @@ public class SmsController {
 
     /**
      * Return all the Sms Request data of failed requests in MySQL using smsServiceImpl.
+     *
      * @return ResponseEntity<GetAllSmsResponse> if success
      * @return ResponseEntity<ErrorResponse> otherwise
-     * */
+     */
     @GetMapping("/v1/sms/failed")
     public ResponseEntity<?> getFailedSmsRequests() {
         logger.info("GET /v1/sms/failed called");
@@ -148,99 +148,18 @@ public class SmsController {
     }
 
     /**
-     * Return all the Sms Request data of finished requests in ElasticSearch using smsServiceImpl.
-     * @return ResponseEntity<GetAllSmsResponse> if success
-     * @return ResponseEntity<ErrorResponse> otherwise
-     * */
-    @GetMapping("/v1/sms/elasticsearch/all")
-    public ResponseEntity<?> getAllSmsRequestElasticsearch() {
-        logger.info("GET /v1/sms/pageable/elasticsearch/all called");
-        try {
-            List<SmsRequestElasticsearch> result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(Date.from(Instant.EPOCH), parseIstToUtcDate(MAX_DATE), Optional.empty(), new ArrayList<>());
-            List<ElasticSearchResponse> _result = new ArrayList<>();
-            result.forEach(res->
-                    _result.add(
-                            ElasticSearchResponse.builder()
-                                    .phoneNumber(res.getPhoneNumber())
-                                    .id(res.getId())
-                                    .smsRequestId(res.getSmsRequestId())
-                                    .updatedAt(res.getUpdatedAt().toString())
-                                    .createdAt(res.getCreatedAt().toString())
-                                    .message(res.getMessage())
-                                    .build()
-                    )
-            );
-
-            return ResponseEntity.ok(
-                    SmsRequestElasticsearchResponse
-                            .builder()
-                            .data(_result)
-                            .build()
-            );
-        } catch (Exception e) {
-            logger.error("Error querying Elasticsearch for SMS requests", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorResponse.builder().code(ErrorCodeConstants.INVALID_REQUEST.toString()).message("SERVER ERROR").build());
-        }
-    }
-
-    /**
      * Return all the Sms Request data in Elastic Search of the as per the query in ElasticSearchRequest query using smsServiceImpl.
      * Checks if the
+     *
      * @return ResponseEntity<GetAllSmsResponse> if success
      * @return ResponseEntity<ErrorResponse> otherwise
-     * */
+     */
     @GetMapping("/v1/sms/pageable/elasticsearch")
     public ResponseEntity<?> getSmsByPhoneNumberAndTimeRangePageable(
             @Valid @RequestBody ElasticSearchRequest query) {
         logger.info("GET /v1/sms/pageable/elasticsearch called with query: {}", query);
         try {
-            boolean isPageable = isValidPageRequest(query);
-            Date effectiveStartTime = query.getStartTime() != null ? parseIstToUtcDate(query.getStartTime()) : Date.from(Instant.EPOCH);
-            Date effectiveEndTime = query.getEndTime() != null ? parseIstToUtcDate(query.getEndTime()) : parseIstToUtcDate(MAX_DATE);
-            boolean hasPhoneNumber = query.getPhoneNumber() != null;
-            List<String> message = query.getMessageContaining() != null ? query.getMessageContaining(): new ArrayList<String>();
-
-            logger.info("effectiveStartTime: {}, effectiveEndTime: {}, message containing: {}", effectiveStartTime, effectiveEndTime, message);
-            List<SmsRequestElasticsearch> result;
-
-            if (isPageable) {
-                result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumberPageSize(
-                        effectiveStartTime,
-                        effectiveEndTime,
-                        (hasPhoneNumber? Optional.of(query.getPhoneNumber()) : Optional.empty()),
-                        message,
-                        query.getPage(),
-                        query.getSize()
-                );
-            } else {
-                result = smsServiceImpl.getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(
-                        effectiveStartTime, effectiveEndTime,
-                        (hasPhoneNumber? Optional.of(query.getPhoneNumber()) : Optional.empty()),
-                        message
-                );
-            }
-            logger.info("Fetched {} SMS requests from Elasticsearch", result.size());
-
-            List<ElasticSearchResponse> _result = new ArrayList<>();
-            result.forEach(res->
-                    _result.add(
-                            ElasticSearchResponse.builder()
-                                    .phoneNumber(res.getPhoneNumber())
-                                    .id(res.getId())
-                                    .smsRequestId(res.getSmsRequestId())
-                                    .updatedAt(res.getUpdatedAt().toString())
-                                    .createdAt(res.getCreatedAt().toString())
-                                    .message(res.getMessage())
-                                    .build()
-                    )
-            );
-
-            return ResponseEntity.ok(
-                    SmsRequestElasticsearchResponse
-                            .builder()
-                            .data(_result)
-                            .build()
-            );
+            return smsServiceImpl.getAllSmsRequestElasticsearchFromQuery(query);
         } catch (Exception e) {
             logger.error("Error querying Elasticsearch for SMS requests", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorResponse.builder().code(ErrorCodeConstants.INVALID_REQUEST.toString()).message("SERVER ERROR").build());
@@ -250,9 +169,10 @@ public class SmsController {
     /**
      * Return the Sms Request in MySQL having the request_id smsServiceImpl.
      * Checks if the
+     *
      * @return ResponseEntity<SmsRequest> if success
      * @return ResponseEntity<ErrorResponse> otherwise
-     * */
+     */
     @GetMapping("/v1/sms/{request_id}")
     public ResponseEntity<?> getSmsRequestById(@PathVariable Long request_id) {
         logger.info("GET /v1/sms/{} called", request_id);
@@ -283,9 +203,10 @@ public class SmsController {
 
     /**
      * Initiates an Sms Request using smsServiceImpl.
+     *
      * @return ResponseEntity<SmsRequestResponse> if success
      * @return ResponseEntity<ErrorResponse> otherwise
-     * */
+     */
     @PostMapping("/v1/sms/send")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> sendSmsRequest(

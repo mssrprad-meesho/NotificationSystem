@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
@@ -15,8 +15,8 @@ import java.util.concurrent.ExecutionException;
 /**
  * Bean to represent the Producer which publishes logs to the Kafka Topic on receiving a request to initiate an Sms Request.
  * Injected into the SmsService.
- * */
-@Service
+ */
+@Component
 public class Producer {
 
     private static final Logger logger = LoggerFactory.getLogger(Producer.class);
@@ -24,13 +24,13 @@ public class Producer {
     /**
      * See the KafkaProducerConfig for more details.
      * Injected through the constructor.
-     * */
+     */
     private final KafkaProducer<Long, Long> producer;
     private final String topicName;
 
     @Autowired
     public Producer(KafkaProducer<Long, Long> producer,
-                    @Value("${spring.kafka.topic_name}") String topicName) {
+                    @Value("${spring.kafka.sms-request-topic-name}") String topicName) {
         this.producer = producer;
         this.topicName = topicName;
     }
@@ -38,7 +38,7 @@ public class Producer {
     /**
      * Publishes (sync) the log containing the request Id of the sms request in the MySQL.
      * Key and Value both are the requestId itself.
-     * */
+     */
     public boolean publishSync(Long smsRequestId) {
         logger.info("Attempting to send SMS request ID: {} to Kafka topic: {}", smsRequestId, topicName);
 

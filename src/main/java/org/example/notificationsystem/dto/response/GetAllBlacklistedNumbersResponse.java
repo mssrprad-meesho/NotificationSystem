@@ -8,12 +8,12 @@ import java.util.List;
 
 /**
  * Object to represent the response body of the GetAllBlacklistedNumbersResponse
- * */
+ */
 @Data
 @Builder
 public class GetAllBlacklistedNumbersResponse {
     /**
      * The blacklisted numbers.
-     * */
+     */
     List<String> data;
 }
