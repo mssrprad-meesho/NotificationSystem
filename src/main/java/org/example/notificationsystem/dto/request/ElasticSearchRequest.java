@@ -48,13 +48,6 @@ public class ElasticSearchRequest {
     private List<String> messageContaining;
 
     /**
-     * For substring based filtering.
-     * Only documents having this string as a substring will be returned.
-     * Can be empty or null.
-     */
-    private String substr;
-
-    /**
      * If we want to filter by phone number.
      * (can be null).
      */

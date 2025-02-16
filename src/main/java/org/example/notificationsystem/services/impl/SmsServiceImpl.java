@@ -102,9 +102,9 @@ public class SmsServiceImpl implements SmsService {
      * @param terms  List of terms to search within the SMS message.
      * @return A list of {@link SmsRequestElasticsearch} objects matching the search criteria.
      */
-    private List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(Date from, Date to, Optional<String> number, List<String> terms, String substr) {
+    private List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(Date from, Date to, Optional<String> number, List<String> terms) {
         logger.info("Fetching SMS requests from Elasticsearch");
-        return elasticSearchRepository.getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequest(from, to, number, terms, substr);
+        return elasticSearchRepository.getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequest(from, to, number, terms);
     }
 
     /**
@@ -118,9 +118,9 @@ public class SmsServiceImpl implements SmsService {
      * @param size   The size of the page.
      * @return A list of {@link SmsRequestElasticsearch} objects for the requested page.
      */
-    private List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumberPageSize(Date from, Date to, Optional<String> number, List<String> terms, int page, int size, String substr) {
+    private List<SmsRequestElasticsearch> getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumberPageSize(Date from, Date to, Optional<String> number, List<String> terms, int page, int size) {
         logger.info("Fetching SMS requests from Elasticsearch");
-        return elasticSearchRepository.getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequestPageSize(from, to, number, terms, page, size, substr);
+        return elasticSearchRepository.getCreatedAtBetweenAndMessageContainingAndPhoneNumberSearchRequestPageSize(from, to, number, terms, page, size);
     }
 
     /**
@@ -240,7 +240,6 @@ public class SmsServiceImpl implements SmsService {
         Date effectiveEndTime = query.getEndTime() != null ? parseIstToUtcDate(query.getEndTime()) : parseIstToUtcDate(MAX_DATE);
         boolean hasPhoneNumber = query.getPhoneNumber() != null;
         List<String> message = query.getMessageContaining() != null ? query.getMessageContaining() : new ArrayList<>();
-        String substr = query.getSubstr();
 
         logger.info("effectiveStartTime: {}, effectiveEndTime: {}, message containing: {}", effectiveStartTime, effectiveEndTime, message);
         List<SmsRequestElasticsearch> result;
@@ -252,15 +251,13 @@ public class SmsServiceImpl implements SmsService {
                     (hasPhoneNumber ? Optional.of(query.getPhoneNumber()) : Optional.empty()),
                     message,
                     query.getPage(),
-                    query.getSize(),
-                    substr
+                    query.getSize()
             );
         } else {
             result = getAllSmsRequestsElasticSearchContainingFromToAndPhoneNumber(
                     effectiveStartTime, effectiveEndTime,
                     (hasPhoneNumber ? Optional.of(query.getPhoneNumber()) : Optional.empty()),
-                    message,
-                    substr
+                    message
             );
         }
         logger.info("Fetched {} SMS requests from Elasticsearch", result.size());
